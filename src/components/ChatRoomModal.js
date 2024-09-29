@@ -1,36 +1,43 @@
 import React, { useState } from 'react';
-import { Modal, Input, Button, Upload, message } from 'antd';
-import { SendOutlined, UploadOutlined } from '@ant-design/icons';
+import { Modal, Input, Button, Upload, message, Avatar } from 'antd';
+import { SendOutlined, UploadOutlined, UserOutlined } from '@ant-design/icons';
 
-const ChatBubble = ({msg}) => {
+const ChatBubble = ({item}) => {
   return (
-    <div
-      key={msg.id}
-      style={{
-        textAlign: msg.sender === 'self' ? 'right' : 'left',
-        marginBottom: 8
-      }}
-    >
+    //   <div>
+    //   {item.userAvatarPath ? (
+    //     <Avatar size={48} src={item.userAvatarPath} />
+    //   ) : (
+    //     <Avatar size={48} icon={<UserOutlined />} />
+    //   )}
+    // </div>
       <div
+        key={`chatLog-${item.chatLogId}`}
         style={{
-          display: 'inline-block',
-          maxWidth: '70%',
-          padding: 8,
-          borderRadius: 8,
-          backgroundColor: msg.sender === 'self' ? '#1890ff' : '#f0f0f0',
-          color: msg.sender === 'self' ? 'white' : 'black',
+          textAlign: item.sender === 'self' ? 'right' : 'left',
+          marginBottom: 8
         }}
       >
-        {msg.text}
+        <div
+          style={{
+            display: 'inline-block',
+            maxWidth: '70%',
+            padding: 8,
+            borderRadius: 8,
+            backgroundColor: item.sender === 'self' ? '#1890ff' : '#f0f0f0',
+            color: item.sender === 'self' ? 'white' : 'black',
+          }}
+        >
+          {item.content}
+        </div>
+        <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>
+          {new Date(item.createAt).toLocaleString()}
+        </div>
       </div>
-      <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>
-        {msg.time}
-      </div>
-    </div>
   )
 }
 
-const ChatRoom = ({messagesx}) => {
+const ChatRoomModal = ({messagesx}) => {
   const [messages, setMessages] = useState(messagesx);
   const [inputText, setInputText] = useState("");
   const [isChatRoomOpen, setChatRoomOpen] = useState(true)
@@ -69,8 +76,8 @@ const ChatRoom = ({messagesx}) => {
       width={600}
     >
       <div style={{ height: 400, overflowY: 'auto', marginBottom: 16, scrollbarWidth: 'none', msOverflowStyle: 'none'}} onScroll={(e) => {console.log(e)}}>
-        {messages.map((msg) => (
-          <ChatBubble key={msg.id} msg={msg} />
+        {messages.map(msg => (
+          <ChatBubble key={msg.chatLogId} item={msg} />
         ))}
       </div>
       <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -94,4 +101,4 @@ const ChatRoom = ({messagesx}) => {
   );
 };
 
-export default ChatRoom;
+export default ChatRoomModal;

@@ -94,17 +94,10 @@ const UploadPost = () => {
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      borderRadius: 8,
-      backgroundColor: 'white',
-      padding: 16,
-      margin: '16px 0px'}}
-      onClick={showModal}
-    >
+    <>
       <Modal
-        title="貼文"
+        title="上傳貼文"
+        centered
         open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
@@ -117,9 +110,9 @@ const UploadPost = () => {
           >
           <Form.Item
             name="content"
-            // rules={[{ required: true, message: '文字訊息' }]}
+            rules={[{ required: true, message: '文字訊息' }]}
           >
-            <Input.TextArea placeholder='寫下什麼吧'/>
+            <Input.TextArea placeholder='寫下什麼吧' style={{height: 240}}/>
           </Form.Item>
           <Form.Item label="標籤" name="tags">
             <div style={{ border: '1px solid #d9d9d9', borderRadius: '2px', padding: '4px', minHeight: '32px', display: 'flex', justifyContent:'start', alignContent: 'center' }}>
@@ -172,8 +165,19 @@ const UploadPost = () => {
           </Form.Item>
         </Form>
       </Modal>
-      <Avatar icon={<PlusCircleOutlined />} size={32}/>
-    </div>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        borderRadius: 8,
+        backgroundColor: 'lightsteelblue',
+        padding: 16,
+        boxShadow: '1px 1px 8px lightgray',
+        margin: '16px 0px'}}
+        onClick={showModal}
+        >
+        <Avatar icon={<PlusCircleOutlined />} size={32}/>
+      </div>
+    </>
   )
 }
 

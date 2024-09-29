@@ -4,7 +4,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 
-function User({item, onClick}) {
+function ChatRoomChannel({item, onClick}) {
 
   return (
     <List.Item style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => onClick()}>
@@ -29,4 +29,4 @@ function User({item, onClick}) {
   )
 }
 
-export default User
+export default ChatRoomChannel

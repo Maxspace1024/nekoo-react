@@ -33,7 +33,7 @@ const Signup = () => {
 	};
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 64px)', }}>
       <Card
         title="註冊"
         style={{ width: 300, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)' }}

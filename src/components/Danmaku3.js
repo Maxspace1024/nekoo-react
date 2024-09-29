@@ -14,30 +14,28 @@ const DanmakuBubble = ({item}) => {
   };
 
   return (
-    <>
-      <div style={{ display: 'inline-flex', flexDirection: 'row', alignItems: 'center' }}>
-        <span
-          style={{
-            position: 'absolute',
-            left: `${item.posX}%`,
-            top: `${item.posY}%`,
-            fontWeight: 'bolder',
-            borderRadius: '20px',
-            padding: '8px 16px',
-            border: 'none',
-            boxShadow: '10px 5px 5px rgba(0, 0, 0, 0.2)',
-            background: 'rgba(255, 255, 255, 0.9)',
-            minWidth: '20px',
-            maxWidth: '300px',
-            overflow: 'hidden',
-            outline: 'none',
-            userSelect: 'none',
-          }}
-          onDoubleClick={handleDoubleClick}
-        >
-          {item.content}
-        </span>
-      </div>
+    <div>
+      <span
+        style={{
+          position: 'absolute',
+          left: `${item.posX}%`,
+          top: `${item.posY}%`,
+          fontWeight: 'bolder',
+          borderRadius: '20px',
+          padding: '8px 16px',
+          border: 'none',
+          boxShadow: '10px 5px 5px rgba(0, 0, 0, 0.2)',
+          background: 'rgba(255, 255, 255, 0.9)',
+          minWidth: '20px',
+          maxWidth: '300px',
+          overflow: 'hidden',
+          outline: 'none',
+          userSelect: 'none',
+        }}
+        onDoubleClick={handleDoubleClick}
+      >
+        {item.content}
+      </span>
 
       <Modal
         title="彈幕內容"
@@ -46,7 +44,7 @@ const DanmakuBubble = ({item}) => {
         onCancel={handleCancel}
         footer={null}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             {item.userAvatarPath ? (
               <Avatar size={56} src={item.userAvatarPath} />
@@ -61,11 +59,11 @@ const DanmakuBubble = ({item}) => {
         </div>
         <p>{item.content}</p>
       </Modal>
-    </>
+    </div>
   )
 }
 
-function Danmaku2({ image, onKeyEnter, onSubscribe, onHistory }) {
+function Danmaku3({ image, onKeyEnter, onSubscribe, onHistory }) {
   const [inputs, setInputs] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [draggedInput, setDraggedInput] = useState(null);
@@ -120,11 +118,13 @@ function Danmaku2({ image, onKeyEnter, onSubscribe, onHistory }) {
   const handleMouseMove = (e) => {
     if (isDragging && draggedInput !== null) {
       const rect = document.getElementById('image-container').getBoundingClientRect();
+      console.log(rect)
       const x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
       const y = Math.min(Math.max(e.clientY - rect.top, 0), rect.height);
       const xx = (x/rect.width * 100).toFixed(2)
       const yy = (y/rect.height* 100).toFixed(2)
 
+      console.log(`${x} ${e.clientY}`)
       console.log(`${xx} ${yy}`)
 
       setInputs(inputs.map(input =>
@@ -164,16 +164,16 @@ function Danmaku2({ image, onKeyEnter, onSubscribe, onHistory }) {
       id="image-container"
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      style={{ position: 'relative' }}
+      style={{ position: 'relative'}}
     >
       <Image
         src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${image.path}`}
         alt="image"
         preview={false}
-        style={{ maxHeight: '500px', borderRadius: 5, userSelect: 'none', WebkitUserDrag: 'none'}}
+        style={{ borderRadius: 8, userSelect: 'none', WebkitUserDrag: 'none'}}
         onClick={handleImageClick}
       />
-      <div id='dmk-tag-layer'>
+      <div id='dmk-tag-layer' style={{maxWidth: '100%', maxHeight: '100%'}}>
         {dmks.map(dmk => (
           <DanmakuBubble key={dmk.danmakuId}  item={dmk}/>
         ))}
@@ -194,8 +194,6 @@ function Danmaku2({ image, onKeyEnter, onSubscribe, onHistory }) {
               borderRadius: '20px',
               padding: '8px 16px',
               border: 'none',
-              padding: '5px',
-              border: 'none',
 							boxShadow: '10px 5px 5px rgba(0, 0, 0, 0.2)',
               background: 'rgba(255, 255, 255, 0.9)',
               minWidth: '20px',
@@ -212,4 +210,4 @@ function Danmaku2({ image, onKeyEnter, onSubscribe, onHistory }) {
   );
 }
 
-export default Danmaku2;
+export default Danmaku3;

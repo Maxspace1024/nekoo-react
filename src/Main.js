@@ -7,66 +7,26 @@ import {
   LogoutOutlined,
   MenuOutlined,
   LoginOutlined,
-  PlusCircleOutlined
 } from '@ant-design/icons';
-import User from './components/User';
+import ChatRoomChannel from './components/ChatRoomChannel';
+import ChatRoomModal from './components/ChatRoomModal';
 import UserFriend from './components/UserFriend';
-import NewMessage from './components/NewMessage';
 import Post from './components/Post';
-import ChatRoom from './components/ChatRoom';
+import UploadPost from './components/UploadPost';
 import Login from './components/Login';
 
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import axiox from './axiox';
-import UploadPost from './components/UploadPost';
+
 
 const { Header, Content, Sider } = Layout;
 const { Search } = Input;
 
-
-const posts = [
-  {
-    postId: "9442-asdf",
-    userId: 1,
-    userName: "asdf", 
-    userAvatarPath: "https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/cbb9848a-9514-49f5-8d10-0186aa9ce538.jpg",
-    privacy: 0,
-    content: '這是一個貼文的範例，展示了滾動效果...',
-    hashtags: ['馬路', '亂七八糟'],
-    assets: [
-      {
-        id: 'x', 
-        type: 0, //static
-        path: "cbb9848a-9514-49f5-8d10-0186aa9ce538.jpg"
-      }
-    ],
-    totalDanmakuCount: 1234,
-    createAt: '2023/08/23 21:32:00', 
-  },
-]
-
-const messages = [
-  { id: 1, text: "你好！", sender: "other", time: "10:00" },
-  { id: 2, text: "嗨，最近如何？", sender: "self", time: "10:01" },
+const chatLogs = [
+  { chatLogId: 1, chatroomId: "asdf", userAvatarPath: "https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/cbb9848a-9514-49f5-8d10-0186aa9ce538.jpg", content: "你好！", sender: "other", createAt: "2024-09-28T04:10:42.417Z" },
+  { chatLogId: 2, chatroomId: "asdf", userAvatarPath: "https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/cbb9848a-9514-49f5-8d10-0186aa9ce538.jpg", content: "嗨，最近如何？", sender: "self", createAt: "2024-09-28T04:11:42.417Z" },
 ];
-
-const chatRooms = [
-  {"chatroomId":7,"chatroomUuid":"d42edfd5-a850-4d29-9a46-59efa65a2277","chatroomName":"qwer","chatroomAvatarPath": "https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/cbb9848a-9514-49f5-8d10-0186aa9ce538.jpg","lastContent":"晚安沒大腦","lastCreateAt":"2024-09-28T04:10:42.417Z"}
-]
-
-const newMessages = [
-  { name: '用戶 A', message: '這是用戶 A 的最新訊息', createAt: '週日' },
-  { name: '用戶 B', message: '這是用戶 B 的最新訊息', createAt: '週日' },
-  { name: '用戶 C', message: '這是用戶 C 的最新訊息', createAt: '週日' },
-]
-
-const newEvents = [
-  { name: '用戶 A', message: '這是用戶 A 的最新訊息', createAt: '週日' },
-  { name: '用戶 B', message: '這是用戶 B 的最新訊息', createAt: '週日' },
-  { name: '用戶 C', message: '這是用戶 C 的最新訊息', createAt: '週日' },
-  { name: '用戶 C', message: '這是用戶 C 的最新訊息', createAt: '週日' },
-]
 
 const scrollbarHiddenStyle = {
   scrollbarWidth: 'none',
@@ -78,8 +38,13 @@ const Main = () => {
   const [userId, setUserId] = useState(localStorage.getItem("userId"))
   const [jwt, setJwt] = useState(localStorage.getItem("jwt"))
   const [isLoginValid, setIsLoginValid] = useState(false)
+
   const [posts, setPosts] = useState([])
-  const [chatrooms, setChatrooms] = useState([])
+  const [myFriendships, setMyFriendships] = useState([])
+  const [myMessages, setMyMessages] = useState([])
+  const [myChatrooms, setMyChatrooms] = useState([])
+  const [userChatLogs, setUserChatLogs] = useState(chatLogs)
+
   const [stompClient, setStompClient] = useState(null)
   useEffect(() => {
     const jwtStr = localStorage.getItem("jwt")
@@ -99,8 +64,7 @@ const Main = () => {
     const userId = localStorage.getItem("userId")
     const jwt = localStorage.getItem("jwt")
     client.connect({}, (frame) => {
-      console.log(frame)
-
+      // 貼文
       client.subscribe(`/topic/post`, (msg) => {
         const msgPosts = JSON.parse(msg.body)
         setPosts(msgPosts)
@@ -109,16 +73,63 @@ const Main = () => {
         const msgPost = JSON.parse(msg.body)
         setPosts(prev => [msgPost, ...prev])
       })
+      client.subscribe(`/topic/post/delete`, (msg) => {
+        const msgPost = JSON.parse(msg.body)
+        // delete
+      })
 
+      // 聊天室頻道
       client.subscribe(`/topic/myChatroom/${userId}`, (msg) => {
         const msgChatrooms = JSON.parse(msg.body)
-        setChatrooms(msgChatrooms)
+        setMyChatrooms(msgChatrooms)
       })
       client.subscribe(`/topic/myChatroom/new/${userId}`, (msg) => {
         console.log(msg)
       })
+
+      // 交友
+      client.subscribe(`/topic/friendship/${userId}`, (msg) => {
+        const msgFriendships = JSON.parse(msg.body)
+        const dropdwonFriendships = msgFriendships.map((friendship,i) => (
+          {
+            value: i,
+            label: (
+              <UserFriend item={friendship} />
+            ),
+          }
+        ))
+        setOptions(dropdwonFriendships);
+      })
+      client.subscribe(`/topic/friendship/new/${userId}`, (msg) => {
+        console.log(msg)
+      })
+
+      // 交友通知(page)
+      client.subscribe(`/topic/friendship/notification/${userId}`, (msg) => {
+        const msgFriendships = JSON.parse(msg.body)
+        setMyFriendships(msgFriendships)
+      })
+      // 新加入的交友通知
+      client.subscribe(`/topic/friendship/notification/new/${userId}`, (msg) => {
+        const msgFriendship = JSON.parse(msg.body)
+        console.log(msgFriendship)
+      })
+
+      // 未讀訊息(page)
+      client.subscribe(`/topic/message/notification/${userId}`, (msg) => {
+        const msgMessages = JSON.parse(msg.body)
+        console.log(msgMessages)
+        setMyMessages(msgMessages)
+      })
+      client.subscribe(`/topic/message/notification/new/${userId}`, (msg) => {
+        const msgMessage = JSON.parse(msg.body)
+        console.log(msgMessage)
+      })
+
       client.send("/app/post", {Authorization: `Bearer ${jwt}`}, "{}")
       client.send("/app/myChatroom", {Authorization: `Bearer ${jwt}`}, "{}")
+      client.send("/app/friendship/notification", {Authorization: `Bearer ${jwt}`}, "{}")
+      client.send("/app/message/notification", {Authorization: `Bearer ${jwt}`}, "{}")
 
       setStompClient(client)
     })
@@ -133,14 +144,7 @@ const Main = () => {
     if (!value) {
       setOptions([]);
     } else {
-      setOptions([
-        {
-          value: '1',
-          label: (
-            <UserFriend />
-          ),
-        }
-      ]);
+      stompClient.send("/app/friendship", {Authorization: `Bearer ${jwt}`}, JSON.stringify({searchName: value}))
     }
   };
 
@@ -150,7 +154,10 @@ const Main = () => {
 
   const handleLogout = () => {
     console.log('登出')
-    localStorage.setItem("jwt", null)
+    localStorage.removeItem("jwt")
+    localStorage.removeItem("userId")
+    localStorage.removeItem("userName")
+    setIsLoginValid(false)
     window.location.href = '/'
   }
 
@@ -158,16 +165,19 @@ const Main = () => {
     console.log('登入')
   }
 
+  const openChatroom = (chatroomUuid) => {
+    console.log(chatroomUuid)
+  }
+
   const menus = isLoginValid ? [
-    { label: "", key: 'nevent', icon: <BellOutlined style={{ fontSize: '20px', color:'white' }} />, onClick: () => openEventNotification('您有新的通知', newEvents)} ,
-    { label: "", key: 'nmessage', icon: <MessageOutlined style={{ fontSize: '20px', color:'white' }} />, onClick: () => openMessageNotification('您有新的通知', newMessages)} ,
+    { label: "", key: 'nevent', icon: <BellOutlined style={{ fontSize: '20px', color:'white' }} />, onClick: () => openFriendshipNotification('您有新的通知', myFriendships)} ,
+    { label: "", key: 'nmessage', icon: <MessageOutlined style={{ fontSize: '20px', color:'white' }} />, onClick: () => openMessageNotification('您有新的通知', myMessages)} ,
     { label: "", key: 'nprofile', icon: <UserOutlined style={{ fontSize: '20px', color:'white' }} />, onClick: () => handleProfile() } ,
     { label: "", key: 'nlogout', icon: <LogoutOutlined style={{ fontSize: '20px', color:'white' }} />, onClick: () => handleLogout() } ,
     { label: "", key: 'ndrawer', icon: <MenuOutlined style={{ fontSize: '20px', color: 'white' }} />, onClick: () => setCollapsed(!collapsed)} ,
   ] : [
     { label: "", key: 'nlogin', icon: <LoginOutlined style={{ fontSize: '20px', color:'white' }} />, onClick: () => handleLogin() } ,
   ]
-
 
   const openMessageNotification = (message, data) => {
     notification.open({
@@ -182,7 +192,7 @@ const Main = () => {
             ...scrollbarHiddenStyle
           }}
           renderItem={item => (
-            <NewMessage item={item} />
+            <ChatRoomChannel item={item} onClick={() => console.log('聊天室頻道')}/>
           )}
         />
       ),
@@ -190,7 +200,7 @@ const Main = () => {
     });
   };
 
-  const openEventNotification = (message, data) => {
+  const openFriendshipNotification = (message, data) => {
     notification.open({
       message: message,
       description: (
@@ -211,10 +221,6 @@ const Main = () => {
     });
   };
 
-  const openChatroom = (chatroomUuid) => {
-    console.log(chatroomUuid)
-  }
-
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header className="header" style={{ 
@@ -230,6 +236,7 @@ const Main = () => {
           <AutoComplete
             options={options}
             onSearch={handleSearch}
+            onSelect={() => {}}
             style={{ width: 320 }}
           >
             <Search
@@ -267,6 +274,7 @@ const Main = () => {
               maxWidth: '880px',
               height: '100%', 
               overflowY: 'scroll',
+              padding: '0px 16px',
               ...scrollbarHiddenStyle
             }}>
               <UploadPost />
@@ -302,15 +310,15 @@ const Main = () => {
             <div style={{ flexGrow: 1, overflowY: 'auto', ...scrollbarHiddenStyle }}>
               <List
                 itemLayout="horizontal"
-                dataSource={chatrooms}
+                dataSource={myChatrooms}
                 renderItem={item => (
-                  <User item={item} onClick={() => openChatroom(item)}/>
+                  <ChatRoomChannel item={item} onClick={() => openChatroom(item)}/>
                 )}
               />
             </div>
           </div>
         </Sider>
-        <ChatRoom visible={true} messagesx={messages}/>
+        <ChatRoomModal visible={true} messagesx={userChatLogs}/>
       </Layout>
       }
       {!isLoginValid && <Login />}

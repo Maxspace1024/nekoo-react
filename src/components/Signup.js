@@ -42,7 +42,7 @@ const Signup = ({onCancel}) => {
           onFinish={onHandleSignup}
         >
           <Form.Item
-            name="username"
+            name="name"
             rules={[{ required: true, message: '請輸入使用者名稱' }]}
           >
             <Input
@@ -58,7 +58,7 @@ const Signup = ({onCancel}) => {
 					>
 						<Input
 							prefix={<UserOutlined />}
-							placeholder="email"
+							placeholder="Email"
               onChange={handleInputChange}
 						/>
 					</Form.Item>

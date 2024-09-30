@@ -11,6 +11,7 @@ function UserFriend({item}) {
     console.log("邀請")
     stompClient.send("/app/friendship/invite", {Authorization: `Bearer ${localStorage.getItem("jwt")}`}, 
       {
+        senderUserId: localStorage.getItem("userId"),
         receiverUserId: item.receiverUserId
       }
     )

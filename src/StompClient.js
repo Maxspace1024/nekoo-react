@@ -13,7 +13,8 @@ class StompClient {
     }
 
     // 初始化 SockJS 和 Stomp
-    this.socket = new SockJS('http://localhost:8080/ws');
+    // this.socket = new SockJS('http://localhost:8080/ws');
+    this.socket = new SockJS('https://nekoo.xyz/ws');
     this.stompClient = Stomp.over(this.socket);
 
     // 預設為未連接狀態

@@ -57,7 +57,7 @@ const Main = () => {
   useEffect(() => {
     stompClient.connect({}, (frame) => {
       // 貼文
-      stompClient.subscribe(`/topic/post`, (msgPosts) => {
+      stompClient.subscribe(`/topic/post/${userId}`, (msgPosts) => {
         setPosts(prev => [...prev, ...msgPosts])
         setPostScrollLock(false)
       })
@@ -240,7 +240,7 @@ const Main = () => {
         justifyContent: 'space-between', 
         alignItems: 'center',
         padding: '0 20px',
-        backgroundColor: '#001529',
+        backgroundColor: 'steelblue',
         boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -278,7 +278,7 @@ const Main = () => {
             display: 'flex', 
             justifyContent: 'center', 
             overflowY: 'auto', 
-            backgroundColor: '#f0f2f5' 
+            backgroundColor: '#e5e7f0' 
           }}>
             <div 
               ref={postScrollRef} 

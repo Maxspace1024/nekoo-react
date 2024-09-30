@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Avatar, Image, Card, Menu, Dropdown, Button } from 'antd';
 import {
   UserOutlined, MoreOutlined,
@@ -9,6 +9,8 @@ import {
 } from '@ant-design/icons';
 import Danmaku3 from './Danmaku3';
 
+import stompClient from '../StompClient'
+
 function Post({item}) {
   const handleMenuClick = (e) => {
     if (e.key === 'edit') {
@@ -16,23 +18,26 @@ function Post({item}) {
       // 這裡是編輯貼文的邏輯
     } else if (e.key === 'delete') {
       console.log('刪除貼文');
+      stompClient.send("/app/post/delete", {Authorization: `Bearer ${localStorage.getItem("jwt")}`}, 
+        { postId: item.postId}
+      )
       // 這裡是刪除貼文的邏輯
     }
   };
 
-  const items = [
-    {
-      label: '編輯',
-      key: 'edit',
-      icon: <EditOutlined />
-    },
+  const items = item.userId === parseInt(localStorage.getItem("userId")) ? [
+    // {
+    //   label: '編輯',
+    //   key: 'edit',
+    //   icon: <EditOutlined />
+    // },
     {
       label: '刪除',
       key: 'delete',
       danger: true,
       icon: <DeleteOutlined />
     },
-  ];
+  ] : [];
 
 
   return (
@@ -94,7 +99,6 @@ function Post({item}) {
           )
         }
       }
-        
       )}
     </Card>
   )

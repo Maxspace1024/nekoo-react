@@ -1,6 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Input, Button, Upload, message, Avatar } from 'antd';
 import { SendOutlined, UploadOutlined, UserOutlined } from '@ant-design/icons';
+
+import stompClient from '../StompClient';
+
+const chatLogs = [
+  { chatLogId: 1, chatroomId: "asdf", userAvatarPath: "https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/cbb9848a-9514-49f5-8d10-0186aa9ce538.jpg", content: "你好！", sender: "other", createAt: "2024-09-28T04:10:42.417Z" },
+  { chatLogId: 2, chatroomId: "asdf", userAvatarPath: "https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/cbb9848a-9514-49f5-8d10-0186aa9ce538.jpg", content: "嗨，最近如何？", sender: "self", createAt: "2024-09-28T04:11:42.417Z" },
+];
 
 const ChatBubble = ({item}) => {
   return (
@@ -37,23 +44,37 @@ const ChatBubble = ({item}) => {
   )
 }
 
-const ChatRoomModal = ({messagesx}) => {
-  const [messages, setMessages] = useState(messagesx);
+const ChatRoomModal = ({config}) => {
+  const [messages, setMessages] = useState(chatLogs);
   const [inputText, setInputText] = useState("");
-  const [isChatRoomOpen, setChatRoomOpen] = useState(true)
+  const [isChatRoomOpen, setChatRoomOpen] = useState(false)
 
   const hanleModalCancel = () => {
     setChatRoomOpen(false)
   }
 
+  useEffect(() => {
+    console.log(config)
+    setChatRoomOpen(true)
+    stompClient.subscribe(`/topic/chatroom/${config.chatroomUuid}`, (msg) => {
+      console.log(JSON.parse(msg.body))
+    })
+  }, [config])
+
   const handleSend = () => {
     if (inputText.trim()) {
-      setMessages([...messages, {
-        id: messages.length + 1,
-        text: inputText,
-        sender: "self",
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }]);
+      // setMessages([...messages, {
+      //   id: messages.length + 1,
+      //   text: inputText,
+      //   sender: "self",
+      //   time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      // }]);
+      stompClient.send(`/chatroom`, {Authorization: `Bearer ${localStorage.getItem("jwt")}`}, 
+        {
+          chatroomId: config.chatroomId,
+          content: inputText
+        }
+      )
       setInputText("");
     }
   };

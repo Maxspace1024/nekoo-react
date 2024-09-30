@@ -7,7 +7,7 @@ import {
 function ChatRoomChannel({item, onClick}) {
 
   return (
-    <List.Item style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => onClick()}>
+    <List.Item style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => onClick(item)}>
       <div style={{ display: 'flex', alignItems: 'center' }}>
         {item.chatroomAvatarPath ? (
           <Avatar size={48} src={item.chatroomAvatarPath} />

@@ -1,10 +1,12 @@
 import React, {useState} from 'react';
-import { Form, Input, Button, Card } from 'antd';
+import { Form, Input, Button, Card, Modal } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import axiox from '../axiox';
+import Signup from './Signup';
 
 const Login = () => {
 	const [errorMessage, setErrorMessage] = useState("");
+	const [isModalOpen, setIsModalOpen] = useState(false)
 
 	const onHandleLogin = (data) => {
 		axiox.post("/api/v1/user/signin", data)
@@ -25,6 +27,7 @@ const Login = () => {
 
 	const onHandleSignup = () => {
 		// navigate("/signup")
+		setIsModalOpen(true)
 	}
 
 	const handleInputChange = () => {
@@ -79,6 +82,13 @@ const Login = () => {
 					</Form.Item>
 				</Form>
 			</Card>
+			<Modal
+				open={isModalOpen}
+				onCancel={() => setIsModalOpen(false)}
+				centered
+			>
+				<Signup onCancel={() => setIsModalOpen(false)}/>
+			</Modal>
 		</div>
 	);
 };

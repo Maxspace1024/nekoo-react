@@ -4,21 +4,46 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 
+import stompClient from '../StompClient';
+
 function UserFriend({item}) {
   function handleInvite() {
     console.log("邀請")
+    stompClient.send("/app/friendship/invite", {Authorization: `Bearer ${localStorage.getItem("jwt")}`}, 
+      {
+        receiverUserId: item.receiverUserId
+      }
+    )
   }
 
   function handleApprove() {
     console.log("接受")
+    stompClient.send("/app/friendship/update", {Authorization: `Bearer ${localStorage.getItem("jwt")}`}, 
+      {
+        friendshipId: item.friendshipId,
+        state: 1
+      }
+    )
   }
 
   function handleReject() {
     console.log("拒絕")
+    stompClient.send("/app/friendship/update", {Authorization: `Bearer ${localStorage.getItem("jwt")}`}, 
+      {
+        friendshipId: item.friendshipId,
+        state: 2
+      }
+    )
   }
 
   function handleReinvite() {
     console.log("重送邀請")
+    stompClient.send("/app/friendship/update", {Authorization: `Bearer ${localStorage.getItem("jwt")}`}, 
+      {
+        friendshipId: item.friendshipId,
+        state: 0
+      }
+    )
   }
 
   const userId = parseInt(localStorage.getItem("userId"))

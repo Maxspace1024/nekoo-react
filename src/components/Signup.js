@@ -1,24 +1,23 @@
 import React, {useState} from 'react';
 import { Form, Input, Button, Card } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom'
 import axiox from '../axiox';
 
-const Signup = () => {
+const Signup = ({onCancel}) => {
   const [errorMessage, setErrorMessage] = useState("");
-  const navigate = useNavigate();
 
   const onHandleLogin = () => {
-    navigate("/login")
+    // navigate("/login")
 	}
 
 	const onHandleSignup = (data) => {
     console.log('Received values of form: ', data);
     axiox.post("/api/v1/user/signup", data)
     .then(res => {
+      console.log(res)
       const data = res.data
       if (data.success) {
-        navigate("/login")
+        onCancel()
       } else {
         setErrorMessage(data.error)
       }

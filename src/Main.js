@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Menu, List, Avatar, notification, Input, AutoComplete } from 'antd';
 import {
   BellOutlined,
@@ -15,18 +15,10 @@ import Post from './components/Post';
 import UploadPost from './components/UploadPost';
 import Login from './components/Login';
 
-import SockJS from 'sockjs-client';
-import Stomp from 'stompjs';
-import axiox from './axiox';
-
+import stompClient from './StompClient'
 
 const { Header, Content, Sider } = Layout;
 const { Search } = Input;
-
-const chatLogs = [
-  { chatLogId: 1, chatroomId: "asdf", userAvatarPath: "https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/cbb9848a-9514-49f5-8d10-0186aa9ce538.jpg", content: "你好！", sender: "other", createAt: "2024-09-28T04:10:42.417Z" },
-  { chatLogId: 2, chatroomId: "asdf", userAvatarPath: "https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/cbb9848a-9514-49f5-8d10-0186aa9ce538.jpg", content: "嗨，最近如何？", sender: "self", createAt: "2024-09-28T04:11:42.417Z" },
-];
 
 const scrollbarHiddenStyle = {
   scrollbarWidth: 'none',
@@ -34,6 +26,12 @@ const scrollbarHiddenStyle = {
 };
 
 const Main = () => {
+  const postScrollRef = useRef(null)
+  const [postScrollLock, setPostScrollLock] = useState(false)
+  const [postScrollPage, setPostScrollPage] = useState(0)
+
+  const [channelConfig, setChannelConfig] = useState({})
+
   const [userName, setUserName] = useState(localStorage.getItem("userName"))
   const [userId, setUserId] = useState(localStorage.getItem("userId"))
   const [jwt, setJwt] = useState(localStorage.getItem("jwt"))
@@ -43,9 +41,7 @@ const Main = () => {
   const [myFriendships, setMyFriendships] = useState([])
   const [myMessages, setMyMessages] = useState([])
   const [myChatrooms, setMyChatrooms] = useState([])
-  const [userChatLogs, setUserChatLogs] = useState(chatLogs)
 
-  const [stompClient, setStompClient] = useState(null)
   useEffect(() => {
     const jwtStr = localStorage.getItem("jwt")
     setUserName(localStorage.getItem("userName"))
@@ -59,37 +55,32 @@ const Main = () => {
   }, [])
 
   useEffect(() => {
-    const socket = new SockJS('http://localhost:8080/ws');
-    const client = Stomp.over(socket);
-    const userId = localStorage.getItem("userId")
-    const jwt = localStorage.getItem("jwt")
-    client.connect({}, (frame) => {
+    stompClient.connect({}, (frame) => {
       // 貼文
-      client.subscribe(`/topic/post`, (msg) => {
-        const msgPosts = JSON.parse(msg.body)
-        setPosts(msgPosts)
+      stompClient.subscribe(`/topic/post`, (msgPosts) => {
+        setPosts(prev => [...prev, ...msgPosts])
+        setPostScrollLock(false)
       })
-      client.subscribe(`/topic/post/new`, (msg) => {
-        const msgPost = JSON.parse(msg.body)
+      stompClient.subscribe(`/topic/post/new`, (msgPost) => {
         setPosts(prev => [msgPost, ...prev])
       })
-      client.subscribe(`/topic/post/delete`, (msg) => {
-        const msgPost = JSON.parse(msg.body)
+      stompClient.subscribe(`/topic/post/delete`, (msgPost) => {
+        setPosts(prev => 
+          prev.filter( p => p.postId !== msgPost.postId)
+        )
         // delete
       })
 
       // 聊天室頻道
-      client.subscribe(`/topic/myChatroom/${userId}`, (msg) => {
-        const msgChatrooms = JSON.parse(msg.body)
+      stompClient.subscribe(`/topic/myChatroom/${userId}`, (msgChatrooms) => {
         setMyChatrooms(msgChatrooms)
       })
-      client.subscribe(`/topic/myChatroom/new/${userId}`, (msg) => {
+      stompClient.subscribe(`/topic/myChatroom/new/${userId}`, (msg) => {
         console.log(msg)
       })
 
       // 交友
-      client.subscribe(`/topic/friendship/${userId}`, (msg) => {
-        const msgFriendships = JSON.parse(msg.body)
+      stompClient.subscribe(`/topic/friendship/${userId}`, (msgFriendships) => {
         const dropdwonFriendships = msgFriendships.map((friendship,i) => (
           {
             value: i,
@@ -100,38 +91,45 @@ const Main = () => {
         ))
         setOptions(dropdwonFriendships);
       })
-      client.subscribe(`/topic/friendship/new/${userId}`, (msg) => {
+      stompClient.subscribe(`/topic/friendship/new/${userId}`, (msg) => {
         console.log(msg)
       })
 
       // 交友通知(page)
-      client.subscribe(`/topic/friendship/notification/${userId}`, (msg) => {
-        const msgFriendships = JSON.parse(msg.body)
+      stompClient.subscribe(`/topic/friendship/notification/${userId}`, (msgFriendships) => {
         setMyFriendships(msgFriendships)
       })
       // 新加入的交友通知
-      client.subscribe(`/topic/friendship/notification/new/${userId}`, (msg) => {
-        const msgFriendship = JSON.parse(msg.body)
+      stompClient.subscribe(`/topic/friendship/notification/new/${userId}`, (msgFriendship) => {
+        // 看看同friendship有沒有存在
         console.log(msgFriendship)
+        setMyFriendships(prev => {
+          const index = prev.findIndex(item => item.friendshipId === msgFriendship.friendshipId);
+          if (index !== -1) {
+              // 如果找到，替换该对象
+              prev[index] = msgFriendship;
+          } else {
+              // 如果没有找到，将新的对象放在数组的最前面
+              prev.unshift(msgFriendship);
+          }
+          return prev
+        })
+
       })
 
       // 未讀訊息(page)
-      client.subscribe(`/topic/message/notification/${userId}`, (msg) => {
-        const msgMessages = JSON.parse(msg.body)
+      stompClient.subscribe(`/topic/message/notification/${userId}`, (msgMessages) => {
         console.log(msgMessages)
         setMyMessages(msgMessages)
       })
-      client.subscribe(`/topic/message/notification/new/${userId}`, (msg) => {
-        const msgMessage = JSON.parse(msg.body)
+      stompClient.subscribe(`/topic/message/notification/new/${userId}`, (msgMessage) => {
         console.log(msgMessage)
       })
 
-      client.send("/app/post", {Authorization: `Bearer ${jwt}`}, "{}")
-      client.send("/app/myChatroom", {Authorization: `Bearer ${jwt}`}, "{}")
-      client.send("/app/friendship/notification", {Authorization: `Bearer ${jwt}`}, "{}")
-      client.send("/app/message/notification", {Authorization: `Bearer ${jwt}`}, "{}")
-
-      setStompClient(client)
+      stompClient.send("/app/post", {Authorization: `Bearer ${jwt}`}, {})
+      stompClient.send("/app/myChatroom", {Authorization: `Bearer ${jwt}`}, {})
+      stompClient.send("/app/friendship/notification", {Authorization: `Bearer ${jwt}`}, {})
+      stompClient.send("/app/message/notification", {Authorization: `Bearer ${jwt}`}, {})
     })
   }, [])
 
@@ -139,12 +137,26 @@ const Main = () => {
 
   const [options, setOptions] = useState([]);
 
+  const handlePostScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = postScrollRef.current
+    
+    if (scrollTop + clientHeight + 20 >= scrollHeight && postScrollLock == false) {
+      // console.log(`${scrollTop} ${scrollHeight} ${clientHeight}`)
+      // setPostScrollLock(true)
+      setPostScrollPage(prev => prev + 1)
+    }
+  }
+
+  useEffect(() => {
+    stompClient.send("/app/post", {Authorization: `Bearer ${jwt}`}, {page: postScrollPage})
+  }, [postScrollPage])
+
   const handleSearch = (value) => {
     // 模擬搜尋邏輯，可以替換為你的 API 請求
     if (!value) {
       setOptions([]);
     } else {
-      stompClient.send("/app/friendship", {Authorization: `Bearer ${jwt}`}, JSON.stringify({searchName: value}))
+      stompClient.send("/app/friendship", {Authorization: `Bearer ${jwt}`}, {searchName: value})
     }
   };
 
@@ -236,7 +248,6 @@ const Main = () => {
           <AutoComplete
             options={options}
             onSearch={handleSearch}
-            onSelect={() => {}}
             style={{ width: 320 }}
           >
             <Search
@@ -269,14 +280,18 @@ const Main = () => {
             overflowY: 'auto', 
             backgroundColor: '#f0f2f5' 
           }}>
-            <div style={{ 
-              width: '100%', 
-              maxWidth: '880px',
-              height: '100%', 
-              overflowY: 'scroll',
-              padding: '0px 16px',
-              ...scrollbarHiddenStyle
-            }}>
+            <div 
+              ref={postScrollRef} 
+              style={{ 
+                width: '100%', 
+                maxWidth: '880px',
+                height: '100%', 
+                overflowY: 'scroll',
+                padding: '0px 16px',
+                ...scrollbarHiddenStyle
+              }}
+              onScroll={handlePostScroll}
+            >
               <UploadPost />
               {posts.map(post => (
                 <Post key={`post-${post.postId}`} item={post}/>
@@ -312,13 +327,13 @@ const Main = () => {
                 itemLayout="horizontal"
                 dataSource={myChatrooms}
                 renderItem={item => (
-                  <ChatRoomChannel item={item} onClick={() => openChatroom(item)}/>
+                  <ChatRoomChannel item={item} onClick={(data) => setChannelConfig(data)}/>
                 )}
               />
             </div>
           </div>
         </Sider>
-        <ChatRoomModal visible={true} messagesx={userChatLogs}/>
+        <ChatRoomModal visible={true} config={channelConfig} />
       </Layout>
       }
       {!isLoginValid && <Login />}

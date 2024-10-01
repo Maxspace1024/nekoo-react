@@ -37,9 +37,11 @@ const Main = () => {
 
   const [channelConfig, setChannelConfig] = useState({})
 
+  const [userAvatarPath, setUserAvatarPath] = useState(localStorage.getItem("userAvatarPath"))
   const [userName, setUserName] = useState(localStorage.getItem("userName"))
   const [userId, setUserId] = useState(localStorage.getItem("userId"))
   const [jwt, setJwt] = useState(localStorage.getItem("jwt"))
+  const [email, setEmail] = useState(localStorage.getItem("email"))
   const [isLoginValid, setIsLoginValid] = useState(false)
 
   const [posts, setPosts] = useState([])
@@ -49,6 +51,8 @@ const Main = () => {
 
   useEffect(() => {
     const jwtStr = localStorage.getItem("jwt")
+    setEmail(localStorage.getItem("email"))
+    setUserAvatarPath(localStorage.getItem("userAvatarPath"))
     setUserName(localStorage.getItem("userName"))
     setUserId(localStorage.getItem("userId"))
     setJwt(jwtStr)
@@ -212,13 +216,17 @@ const Main = () => {
   }
 
   const menus = isLoginValid ? [
-    { label: "", key: 'nevent', icon: <BellOutlined style={{ fontSize: '20px', color:'white' }} />, onClick: () => openFriendshipNotification('您有新的通知', myFriendships)} ,
-    { label: "", key: 'nmessage', icon: <MessageOutlined style={{ fontSize: '20px', color:'white' }} />, onClick: () => openMessageNotification('您有新的通知', myMessages)} ,
-    { label: "", key: 'nprofile', icon: <UserOutlined style={{ fontSize: '20px', color:'white' }} />, onClick: () => handleProfile() } ,
-    { label: "", key: 'nlogout', icon: <LogoutOutlined style={{ fontSize: '20px', color:'white' }} />, onClick: () => handleLogout() } ,
+    { label: <div style={{width: 200, textAlign: "right"}}>{localStorage.getItem("email")}</div>, key: 'nusername', } ,
+    { label: "個人資訊", key: 'nprofile', 
+      icon: <UserOutlined style={{ fontSize: '20px', color:'white' }} />, 
+      onClick: () => handleProfile() 
+    } ,
+    { label: "通知", key: 'nevent', icon: <BellOutlined style={{ fontSize: '20px', color:'white' }} />, onClick: () => openFriendshipNotification('您有新的通知', myFriendships)} ,
+    { label: "訊息", key: 'nmessage', icon: <MessageOutlined style={{ fontSize: '20px', color:'white' }} />, onClick: () => openMessageNotification('您有新的通知', myMessages)} ,
+    { label: "登出", key: 'nlogout', icon: <LogoutOutlined style={{ fontSize: '20px', color:'white' }} />, onClick: () => handleLogout() } ,
     { label: "", key: 'ndrawer', icon: <MenuOutlined style={{ fontSize: '20px', color: 'white' }} />, onClick: () => setCollapsed(!collapsed)} ,
   ] : [
-    { label: "", key: 'nlogin', icon: <LoginOutlined style={{ fontSize: '20px', color:'white' }} />, onClick: () => handleLogin() } ,
+    { label: "登入", key: 'nlogin', icon: <LoginOutlined style={{ fontSize: '20px', color:'white' }} />, onClick: () => handleLogin() } ,
   ]
 
   const openMessageNotification = (message, data) => {
@@ -264,57 +272,64 @@ const Main = () => {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout style={{ minHeight: '100vh', backgroundColor: '#e5e7f0'}}>
       <Header className="header" style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        padding: '0 20px',
+        padding: '0 4px 0px 20px',
         backgroundColor: 'steelblue',
+        height: 48,
         boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
         <div style={{ color: 'white', fontSize: '24px', fontWeight: 'bold', marginRight: '20px' }}>Nekoo</div>
-          <AutoComplete
-            options={options}
-            onSearch={handleSearch}
-            style={{ width: 320 }}
-          >
-            <Search
-              placeholder="搜尋貼文標籤"
-              allowClear
-              style={{ 
-                borderRadius: '20px', 
-                overflow: 'hidden', 
-                backgroundColor: 'rgba(255,255,255,0.1)',
-              }}
-            />
-          </AutoComplete>
+          { isLoginValid && 
+            <AutoComplete
+              options={options}
+              onSearch={handleSearch}
+              style={{ width: 320 }}
+            >
+              <Search
+                placeholder="搜尋貼文標籤"
+                allowClear
+                style={{ 
+                  borderRadius: '20px', 
+                  overflow: 'hidden', 
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                }}
+              />
+            </AutoComplete>
+          }
         </div>
-        <Menu mode="horizontal" theme="dark" selectable={false} style={{ 
+        <Menu mode="horizontal"  theme="dark" 
+        selectable={false}
+        style={{ 
           display: 'flex', 
-          justifyContent: 'center', 
+          justifyContent: 'end', 
           alignItems: 'center',
           height: '100%',
           border: 'none', 
-          backgroundColor: 'transparent'
-        }} items={menus}/>
+          backgroundColor: 'transparent',
+          maxWidth: 800
+        }} 
+        items={menus}/>
       </Header>
 
       { isLoginValid && <Layout>
-        <Content style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)' }}>
+        <Content style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)', backgroundColor: '#e5e7f0' }}>
           <div style={{ 
             flexGrow: 1, 
             display: 'flex', 
             justifyContent: 'center', 
-            overflowY: 'auto', 
-            backgroundColor: '#e5e7f0' 
+            overflowY: 'auto',
           }}>
             <div 
               ref={postScrollRef} 
               style={{ 
                 width: '100%', 
-                maxWidth: '880px',
+                // maxWidth: '880px',
+                maxWidth: '720px',
                 height: '100%', 
                 overflowY: 'scroll',
                 padding: '0px 16px',

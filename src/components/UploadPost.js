@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useRef} from 'react';
-import { Button, Modal, Form, Avatar, Input, Upload, Tag } from 'antd';
-import { PlusCircleOutlined , UploadOutlined} from '@ant-design/icons';
+import { Button, Modal, Form, Avatar, Input, Upload, Tag, } from 'antd';
+import { PlusCircleOutlined , UploadOutlined, UserOutlined} from '@ant-design/icons';
 import axiox from '../axiox';
 
 const UploadPost = () => {
@@ -12,6 +12,12 @@ const UploadPost = () => {
   const [inputVisible, setInputVisible] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const inputRef = useRef(null);
+
+  const [userAvatarPath, setUserAvatarPath] = useState('')
+
+  useEffect(() => {
+    setUserAvatarPath(localStorage.getItem("userAvatarPath"))
+  }, [])
 
   // modal
   const showModal = () => {
@@ -165,7 +171,7 @@ const UploadPost = () => {
           </Form.Item>
         </Form>
       </Modal>
-      <div style={{
+      {/* <div style={{
         display: 'flex',
         justifyContent: 'center',
         borderRadius: 8,
@@ -176,6 +182,43 @@ const UploadPost = () => {
         onClick={showModal}
         >
         <Avatar icon={<PlusCircleOutlined />} size={32}/>
+      </div> */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'start',
+        borderRadius: 8,
+        backgroundColor: 'steelblue',
+        padding: '16px',
+        boxShadow: '1px 1px 8px lightgray',
+        margin: '16px 0px'}}
+        onClick={showModal}
+      >
+        <div style={{
+          width: 'auto'
+        }}>
+          {
+            userAvatarPath != 'null' || userAvatarPath.trim() != "" ? (
+              <Avatar size={52} src={userAvatarPath} />
+            ) : (
+              <Avatar size={52} icon={<UserOutlined />} />
+            )
+          }
+        </div>
+        
+        <div style={{ 
+          display: 'flex', 
+          justifyContent:'start', 
+          alignItems:'center', 
+          margin: '0 16px', 
+          padding: '0 16px',
+          backgroundColor: 'lightsteelblue',
+          fontSize: 20,
+          borderRadius: 32,
+          border: '1px solid cornflowerblue',
+          width: '90%'}}
+        >
+        {`${localStorage.getItem("userName")}，有沒有快樂發表一下呀`}
+        </div>
       </div>
     </>
   )

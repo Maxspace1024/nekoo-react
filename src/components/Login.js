@@ -16,6 +16,8 @@ const Login = () => {
 				if (isSuccess) {
 					localStorage.setItem("jwt", data.jwt)
 					localStorage.setItem("userId", data.userId)
+					localStorage.setItem("userName", data.userName)
+					localStorage.setItem("userAvatarPath", data.userAvatarPath)
 					localStorage.setItem("email", data.email)
 					window.location.href = "/"
 				} else {
@@ -26,7 +28,6 @@ const Login = () => {
 	};
 
 	const onHandleSignup = () => {
-		// navigate("/signup")
 		setIsModalOpen(true)
 	}
 

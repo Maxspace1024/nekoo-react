@@ -74,7 +74,6 @@ function Danmaku3({ asset, dmkVisible }) {
   const [dmks, setDmks] = useState([])
 
   useEffect(() => {
-    console.log("ignore")
     stompClient.subscribe(`/topic/asset/${asset.id}`, (msgDmk) => {
       setDmks(prev => [...prev, msgDmk])
     })
@@ -86,21 +85,23 @@ function Danmaku3({ asset, dmkVisible }) {
   }, [stompClient.isConnected])
 
   useEffect(() => {
-    axiox.post("/api/v1/danmaku/log", 
-      {
-        assetId: asset.id
-      }
-    )
-    .then(response => {
-      const data = response.data
-      const success = data.success
-      const allDmk = data.data
-      if (success) {
-        setDmks(data.data)
-      }
-    })
-    .catch(e => {console.error(e)})
-  }, [])
+    if (asset != null) {
+      axiox.post("/api/v1/danmaku/log", 
+        {
+          assetId: asset.id
+        }
+      )
+      .then(response => {
+        const data = response.data
+        const success = data.success
+        const allDmk = data.data
+        if (success) {
+          setDmks(data.data)
+        }
+      })
+      .catch(e => {console.error(e)})
+    }
+  }, [asset])
 
   // 點擊圖片時創建新輸入框
   const handleImageClick = (e) => {
@@ -161,6 +162,7 @@ function Danmaku3({ asset, dmkVisible }) {
       const yy = (data.y/rect.height* 100).toFixed(2)
       const formData = new FormData()
       if ( "assetId" !== null )         formData.append("assetId", asset.id)
+      if ( "userId" !== null)           formData.append("userId", localStorage.getItem("userId"))
       if ( "type" !== null )            formData.append("type", 0)
       if ( "content" !== null )         formData.append("content", data.text)
       // if ( "color" !== null )           formData.append("color", null)
@@ -195,7 +197,7 @@ function Danmaku3({ asset, dmkVisible }) {
       id="image-container"
       onMouseMove={(e) => handleMouseMove(e, null)}
       onMouseUp={handleMouseUp}
-      style={{ position: 'relative'}}
+      style={{ position: 'relative', boxShadow: '1px 1px 8px lightgray'}}
     >
       <Image
         src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`}

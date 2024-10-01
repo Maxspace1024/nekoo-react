@@ -5,25 +5,41 @@ import {
   EditOutlined,
   DeleteOutlined,
   LockOutlined,
-  EllipsisOutlined
+  EllipsisOutlined, 
+  EyeOutlined, 
+  EyeInvisibleOutlined
 } from '@ant-design/icons';
 import Danmaku3 from './Danmaku3';
 
-import stompClient from '../StompClient'
+import axiox from '../axiox';
 
 function Post({item}) {
+  const [toggleDmkVisible, setToggleDmkVisible] = useState(true)
+
+  function deletePost() {
+    axiox.post("/api/v1/post/delete", 
+      { postId: item.postId }
+    )
+    .then(res => {
+      console.log(res.data)
+    })
+    .catch(e => {console.error(e)})
+  }
+
   const handleMenuClick = (e) => {
     if (e.key === 'edit') {
-      console.log('編輯貼文');
       // 這裡是編輯貼文的邏輯
+      console.log('編輯貼文');
     } else if (e.key === 'delete') {
-      console.log('刪除貼文');
-      stompClient.send("/app/post/delete", {Authorization: `Bearer ${localStorage.getItem("jwt")}`}, 
-        { postId: item.postId}
-      )
       // 這裡是刪除貼文的邏輯
+      console.log('刪除貼文');
+      deletePost()      
     }
   };
+
+  const handleDmkVisble = (e) => {
+    setToggleDmkVisible(prev => !prev)
+  }
 
   const items = item.userId === parseInt(localStorage.getItem("userId")) ? [
     // {
@@ -58,6 +74,10 @@ function Post({item}) {
         {/* 右上角統計數據和選單按鈕 */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <h2 style={{ marginRight: '20px', fontSize: '24px' }}>{item.totalDanmakuCount} 條彈幕</h2>
+          {
+            toggleDmkVisible ? <Button type="text" icon={<EyeOutlined style={{ fontSize: '24px' }} onClick={handleDmkVisble}/> } />
+            : <Button type="text" icon={<EyeInvisibleOutlined style={{ fontSize: '24px' }} onClick={handleDmkVisble}/> } />
+          }
           <Dropdown
             menu={{
               items,
@@ -83,11 +103,7 @@ function Post({item}) {
           // image
           return (
             <div key={`asset-${asset.id}`} style={{ width: '100%', borderRadius: 8, display: 'flex', justifyContent: 'center', backgroundColor: 'white' }}>
-              <Danmaku3 image={asset} 
-                onKeyEnter={() => {}}
-                onSubscribe={() => {}}
-                onHistory={() => {}}
-              />
+              <Danmaku3 asset={asset} dmkVisible={toggleDmkVisible} />
             </div>
           )
         } else if (asset.type === 1 ) {

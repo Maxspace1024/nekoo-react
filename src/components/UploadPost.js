@@ -34,7 +34,7 @@ const UploadPost = () => {
     
     axiox.post("/api/v1/post", formData, {
       headers: {
-        "Authorization": `Bearer ${localStorage.getItem("jwt")}`,
+        // "Authorization": `Bearer ${localStorage.getItem("jwt")}`,
         'Content-Type': 'multipart/form-data',
       }
     })

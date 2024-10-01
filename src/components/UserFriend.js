@@ -4,47 +4,56 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 
-import stompClient from '../StompClient';
+import axiox from '../axiox';
 
 function UserFriend({item}) {
   function handleInvite() {
     console.log("邀請")
-    stompClient.send("/app/friendship/invite", {Authorization: `Bearer ${localStorage.getItem("jwt")}`}, 
+    axiox.post("/api/v1/friendship/invite",
       {
         senderUserId: localStorage.getItem("userId"),
         receiverUserId: item.receiverUserId
       }
-    )
+    ).then(response => {
+      console.log(response.data)
+    })
+    .catch(e => console.error(e))
   }
 
   function handleApprove() {
     console.log("接受")
-    stompClient.send("/app/friendship/update", {Authorization: `Bearer ${localStorage.getItem("jwt")}`}, 
+    axiox.post("/api/v1/friendship/approve",
       {
         friendshipId: item.friendshipId,
-        state: 1
       }
-    )
+    ).then(response => {
+      console.log(response.data)
+    })
+    .catch(e => console.error(e))
   }
 
   function handleReject() {
     console.log("拒絕")
-    stompClient.send("/app/friendship/update", {Authorization: `Bearer ${localStorage.getItem("jwt")}`}, 
+    axiox.post("/api/v1/friendship/reject",
       {
         friendshipId: item.friendshipId,
-        state: 2
       }
-    )
+    ).then(response => {
+      console.log(response.data)
+    })
+    .catch(e => console.error(e))
   }
 
   function handleReinvite() {
     console.log("重送邀請")
-    stompClient.send("/app/friendship/update", {Authorization: `Bearer ${localStorage.getItem("jwt")}`}, 
+    axiox.post("/api/v1/friendship/pending",
       {
         friendshipId: item.friendshipId,
-        state: 0
       }
-    )
+    ).then(response => {
+      console.log(response.data)
+    })
+    .catch(e => console.error(e))
   }
 
   const userId = parseInt(localStorage.getItem("userId"))
@@ -76,6 +85,9 @@ function UserFriend({item}) {
         }
         { item.friendshipState === 2 && item.senderUserId === userId &&// rejected sender
           <Button color='solid' variant='outlined' onClick={handleReinvite}>重新邀請</Button>
+        }
+        { item.friendshipState === 2 && item.receiverUserId === userId &&// rejected sender
+          <Button color='solid' variant='outlined'>拒絕此邀請</Button>
         }
         { item.friendshipState === 3 && // none
           <Button color='primary' variant='outlined' onClick={handleInvite}>邀請</Button>

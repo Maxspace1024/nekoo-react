@@ -13,8 +13,8 @@ class StompClient {
     }
 
     // 初始化 SockJS 和 Stomp
-    // this.socket = new SockJS('http://localhost:8080/ws');
-    this.socket = new SockJS('https://nekoo.xyz/ws');
+    this.socket = new SockJS('http://localhost:8080/ws');
+    // this.socket = new SockJS('https://nekoo.xyz/ws');
     this.stompClient = Stomp.over(this.socket);
 
     // 預設為未連接狀態
@@ -63,6 +63,14 @@ class StompClient {
         const body = JSON.parse(message.body);
         callback(body);
       });
+    } else {
+      console.error('STOMP 客戶端尚未連接，無法訂閱');
+    }
+  }
+
+  unsubscribe(destination) {
+    if (this.isConnected) {
+      return this.stompClient.subscribe(destination);
     } else {
       console.error('STOMP 客戶端尚未連接，無法訂閱');
     }

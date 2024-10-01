@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Image, Input, Avatar, Modal } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 
+import axiox from '../axiox';
+import stompClient from '../StompClient';
+import userEvent from '@testing-library/user-event';
+
 const DanmakuBubble = ({item}) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -63,35 +67,39 @@ const DanmakuBubble = ({item}) => {
   )
 }
 
-function Danmaku3({ image, onKeyEnter, onSubscribe, onHistory }) {
+function Danmaku3({ asset, dmkVisible }) {
   const [inputs, setInputs] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [draggedInput, setDraggedInput] = useState(null);
-  const [dmks, setDmks] = useState([
-    {
-      danmakuId: 'asdfas',
-      userId: 1,
-      userName: "asdf", 
-      userAvatarPath: "https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/cbb9848a-9514-49f5-8d10-0186aa9ce538.jpg",
-      posX: 10,
-      posY: 60,
-      content: "你好你好",
-      createAt: "2024/09/23 22:30:22"
-    },
-  ])
+  const [dmks, setDmks] = useState([])
 
   useEffect(() => {
-    onSubscribe(image.id, 
-      (msg) => {
-        const dmk = JSON.parse(msg.body)
-        setDmks(prev => [...prev, dmk])
-      },
-      (msg) => {
-        const dmks = JSON.parse(msg.body)
-        setDmks(dmks)
+    console.log("ignore")
+    stompClient.subscribe(`/topic/asset/${asset.id}`, (msgDmk) => {
+      setDmks(prev => [...prev, msgDmk])
+    })
+    stompClient.subscribe(`/topic/asset/delete/${asset.id}`, (msgDmk) => {
+      // setDmks(prev => [...prev, msgDmk])
+    })
+
+    return () => stompClient.unsubscribe(`/topic/asset/${asset.id}`)
+  }, [stompClient.isConnected])
+
+  useEffect(() => {
+    axiox.post("/api/v1/danmaku/log", 
+      {
+        assetId: asset.id
       }
     )
-    onHistory(image.id)
+    .then(response => {
+      const data = response.data
+      const success = data.success
+      const allDmk = data.data
+      if (success) {
+        setDmks(data.data)
+      }
+    })
+    .catch(e => {console.error(e)})
   }, [])
 
   // 點擊圖片時創建新輸入框
@@ -115,7 +123,7 @@ function Danmaku3({ image, onKeyEnter, onSubscribe, onHistory }) {
   };
 
   // 拖動輸入框
-  const handleMouseMove = (e) => {
+  const handleMouseMove = (e, input) => {
     if (isDragging && draggedInput !== null) {
       const rect = document.getElementById('image-container').getBoundingClientRect();
       console.log(rect)
@@ -124,8 +132,8 @@ function Danmaku3({ image, onKeyEnter, onSubscribe, onHistory }) {
       const xx = (x/rect.width * 100).toFixed(2)
       const yy = (y/rect.height* 100).toFixed(2)
 
-      console.log(`${x} ${e.clientY}`)
-      console.log(`${xx} ${yy}`)
+      // console.log(`${x} ${e.clientY}`)
+      // console.log(`${xx} ${yy}`)
 
       setInputs(inputs.map(input =>
         input.id === draggedInput ? { ...input, x, y } : input
@@ -148,34 +156,57 @@ function Danmaku3({ image, onKeyEnter, onSubscribe, onHistory }) {
 
   const handleKeyEnterDown = (e, data) => {
     if(e.key === "Enter") {
-      const dmkData = {
-        imageId: image.id,
-        content: data.text,
-        posX: Math.round(data.x),
-        posY: Math.round(data.y)
-      }
-      onKeyEnter(dmkData)
+      const rect = document.getElementById('image-container').getBoundingClientRect();
+      const xx = (data.x/rect.width * 100).toFixed(2)
+      const yy = (data.y/rect.height* 100).toFixed(2)
+      const formData = new FormData()
+      if ( "assetId" !== null )         formData.append("assetId", asset.id)
+      if ( "type" !== null )            formData.append("type", 0)
+      if ( "content" !== null )         formData.append("content", data.text)
+      // if ( "color" !== null )           formData.append("color", null)
+      // if ( "backgroundColor" !== null ) formData.append("backgroundColor", null)
+      if ( "visible" !== null )         formData.append("visible", 0)
+      if ( "size" !== null )            formData.append("size", 1)
+      if ( "posX" !== null )            formData.append("posX", xx)
+      if ( "posY" !== null )            formData.append("posY", yy)
+      // if ( "appearAt" !== null )        formData.append("appearAt", null)
+      // if ( "image" !== null )           formData.append("image", null)
+      
+      axiox.post("/api/v1/danmaku", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      })
+      .then(res => {
+        // console.log(res)
+      })
+      .catch(e => {console.error(e)})
+
       setInputs([])
     }
+  }
+
+  const  handleDmkDoubleClick = () => {
+    console.log("dmk editor")
   }
 
   return (
     <div
       id="image-container"
-      onMouseMove={handleMouseMove}
+      onMouseMove={(e) => handleMouseMove(e, null)}
       onMouseUp={handleMouseUp}
       style={{ position: 'relative'}}
     >
       <Image
-        src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${image.path}`}
+        src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`}
         alt="image"
         preview={false}
         style={{ borderRadius: 8, userSelect: 'none', WebkitUserDrag: 'none'}}
         onClick={handleImageClick}
       />
-      <div id='dmk-tag-layer' style={{maxWidth: '100%', maxHeight: '100%'}}>
+      <div id='dmk-tag-layer' style={{maxWidth: '100%', maxHeight: '100%'}} style={{ visibility: dmkVisible ? 'visible' : 'hidden' }}>
         {dmks.map(dmk => (
-          <DanmakuBubble key={dmk.danmakuId}  item={dmk}/>
+          <DanmakuBubble key={dmk.danmakuId} item={dmk}/>
         ))}
       </div>
       <div id='dmk-layer'>
@@ -186,6 +217,7 @@ function Danmaku3({ image, onKeyEnter, onSubscribe, onHistory }) {
             onChange={(e) => handleInputChange(input.id, e.target.value)}
             onKeyDown={(e) => handleKeyEnterDown(e, input)}
             onMouseDown={() => handleMouseDown(input.id)}
+            onDoubleClick={() => handleDmkDoubleClick()}
             style={{
 							position: 'absolute',
               left: `${input.x}px`,

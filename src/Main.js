@@ -15,6 +15,7 @@ import Post from './components/Post';
 import UploadPost from './components/UploadPost';
 import Login from './components/Login';
 
+import axiox from './axiox';
 import stompClient from './StompClient'
 
 const { Header, Content, Sider } = Layout;
@@ -29,6 +30,10 @@ const Main = () => {
   const postScrollRef = useRef(null)
   const [postScrollLock, setPostScrollLock] = useState(false)
   const [postScrollPage, setPostScrollPage] = useState(0)
+
+  const channelScrollRef = useRef(null)
+  const [channelScrollLock, setChannelScrollLock] = useState(false)
+  const [channelScrollPage, setChannelScrollPage] = useState(0)
 
   const [channelConfig, setChannelConfig] = useState({})
 
@@ -49,18 +54,51 @@ const Main = () => {
     setJwt(jwtStr)
     if (jwtStr !== null) {
       setIsLoginValid(true)
+      axiox.defaults.headers.common['Authorization'] = `Bearer ${jwtStr}`;
     } else {
       setIsLoginValid(false)
     }
   }, [])
 
+  function fetchPostPage() {
+    axiox.post("/api/v1/postPage",
+      {
+        page: postScrollPage
+      }
+    ).then(response => {
+      const data = response.data
+      const success = data.success
+      const {page, totalPages} = data.data
+      if (success && postScrollPage < totalPages) {
+        setPosts(prev => [...prev, ...page])
+      }
+      setPostScrollLock(false)
+      console.log(data)
+    })
+    .catch(e => console.error(e))
+  }
+
+  function fetchChannelPage() {
+    axiox.post("/api/v1/chatroomPage",
+      {
+        page: postScrollPage
+      }
+    ).then(response => {
+      const data = response.data
+      const success = data.success
+      const {page, totalPages} = data.data
+      if (success && channelScrollPage < totalPages) {
+        setMyChatrooms(prev => [...prev, ...page])
+      }
+      console.log(data)
+      // setChannelScrollLock(false)
+    })
+    .catch(e => console.error(e))
+  }
+
   useEffect(() => {
     stompClient.connect({}, (frame) => {
-      // 貼文
-      stompClient.subscribe(`/topic/post/${userId}`, (msgPosts) => {
-        setPosts(prev => [...prev, ...msgPosts])
-        setPostScrollLock(false)
-      })
+      // #貼文
       stompClient.subscribe(`/topic/post/new`, (msgPost) => {
         setPosts(prev => [msgPost, ...prev])
       })
@@ -68,13 +106,9 @@ const Main = () => {
         setPosts(prev => 
           prev.filter( p => p.postId !== msgPost.postId)
         )
-        // delete
       })
 
       // 聊天室頻道
-      stompClient.subscribe(`/topic/myChatroom/${userId}`, (msgChatrooms) => {
-        setMyChatrooms(msgChatrooms)
-      })
       stompClient.subscribe(`/topic/myChatroom/new/${userId}`, (msg) => {
         console.log(msg)
       })
@@ -114,7 +148,6 @@ const Main = () => {
           }
           return prev
         })
-
       })
 
       // 未讀訊息(page)
@@ -125,30 +158,31 @@ const Main = () => {
       stompClient.subscribe(`/topic/message/notification/new/${userId}`, (msgMessage) => {
         console.log(msgMessage)
       })
-
-      stompClient.send("/app/post", {Authorization: `Bearer ${jwt}`}, {})
-      stompClient.send("/app/myChatroom", {Authorization: `Bearer ${jwt}`}, {})
+      
+      fetchChannelPage()
       stompClient.send("/app/friendship/notification", {Authorization: `Bearer ${jwt}`}, {})
       stompClient.send("/app/message/notification", {Authorization: `Bearer ${jwt}`}, {})
     })
   }, [])
 
+  // 側欄開闔
   const [collapsed, setCollapsed] = useState(false);
 
+  // 搜尋下拉選單
   const [options, setOptions] = useState([]);
 
   const handlePostScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = postScrollRef.current
-    
     if (scrollTop + clientHeight + 20 >= scrollHeight && postScrollLock == false) {
       // console.log(`${scrollTop} ${scrollHeight} ${clientHeight}`)
-      // setPostScrollLock(true)
+      setPostScrollLock(true)
       setPostScrollPage(prev => prev + 1)
     }
   }
 
+  // page 遞增
   useEffect(() => {
-    stompClient.send("/app/post", {Authorization: `Bearer ${jwt}`}, {page: postScrollPage})
+    fetchPostPage()
   }, [postScrollPage])
 
   const handleSearch = (value) => {
@@ -175,10 +209,6 @@ const Main = () => {
 
   const handleLogin = () => {
     console.log('登入')
-  }
-
-  const openChatroom = (chatroomUuid) => {
-    console.log(chatroomUuid)
   }
 
   const menus = isLoginValid ? [

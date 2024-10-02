@@ -38,7 +38,7 @@ const Login = () => {
 	};
 
 	return (
-		<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 64px)', }}>
+		<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 48px)', }}>
 			<Card
 				title="登入"
 				style={{ width: 300, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)' }}

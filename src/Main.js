@@ -47,7 +47,7 @@ const Main = () => {
   const [posts, setPosts] = useState([])
   const [myFriendships, setMyFriendships] = useState([])
   const [myMessages, setMyMessages] = useState([])
-  const [myChatrooms, setMyChatrooms] = useState([])
+  const [chatroomChannels, setChatroomChannels] = useState([])
 
   useEffect(() => {
     const jwtStr = localStorage.getItem("jwt")
@@ -92,7 +92,7 @@ const Main = () => {
       const success = data.success
       const {page, totalPages} = data.data
       if (success && channelScrollPage < totalPages) {
-        setMyChatrooms(prev => [...prev, ...page])
+        setChatroomChannels(prev => [...prev, ...page])
       }
       console.log(data)
       // setChannelScrollLock(false)
@@ -113,8 +113,8 @@ const Main = () => {
       })
 
       // 聊天室頻道
-      stompClient.subscribe(`/topic/myChatroom/new/${userId}`, (msg) => {
-        console.log(msg)
+      stompClient.subscribe(`/topic/chatroom/new/${userId}`, (msgChatroom) => {
+        setChatroomChannels(prev => [msgChatroom, ...prev])
       })
 
       // 交友
@@ -216,7 +216,7 @@ const Main = () => {
   }
 
   const menus = isLoginValid ? [
-    { label: <div style={{width: 200, textAlign: "right"}}>{localStorage.getItem("email")}</div>, key: 'nusername', } ,
+    { label: <div style={{width: 200, textAlign: "right"}}>你好，{localStorage.getItem("userName")}</div>, key: 'nusername', } ,
     { label: "個人資訊", key: 'nprofile', 
       icon: <UserOutlined style={{ fontSize: '20px', color:'white' }} />, 
       onClick: () => handleProfile() 
@@ -291,7 +291,7 @@ const Main = () => {
               style={{ width: 320 }}
             >
               <Search
-                placeholder="搜尋貼文標籤"
+                placeholder="搜尋用戶"
                 allowClear
                 style={{ 
                   borderRadius: '20px', 
@@ -317,7 +317,7 @@ const Main = () => {
       </Header>
 
       { isLoginValid && <Layout>
-        <Content style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)', backgroundColor: '#e5e7f0' }}>
+        <Content style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 48px)', backgroundColor: '#e5e7f0' }}>
           <div style={{ 
             flexGrow: 1, 
             display: 'flex', 
@@ -356,7 +356,7 @@ const Main = () => {
           style={{ 
             backgroundColor: '#fff',
             boxShadow: '-1px 0 3px rgba(0,0,0,0.1)',
-            height: 'calc(100vh - 64px)',
+            height: 'calc(100vh - 48px)',
             overflow: 'auto',
             padding: collapsed ? '0px' : '20px',
           }}
@@ -370,7 +370,7 @@ const Main = () => {
             <div style={{ flexGrow: 1, overflowY: 'auto', ...scrollbarHiddenStyle }}>
               <List
                 itemLayout="horizontal"
-                dataSource={myChatrooms}
+                dataSource={chatroomChannels}
                 renderItem={item => (
                   <ChatRoomChannel item={item} onClick={(data) => setChannelConfig(data)}/>
                 )}

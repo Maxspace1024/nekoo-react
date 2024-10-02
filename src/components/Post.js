@@ -73,7 +73,7 @@ function Post({item}) {
 
         {/* 右上角統計數據和選單按鈕 */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <h2 style={{ marginRight: '20px', fontSize: '24px' }}>{item.totalDanmakuCount} 條彈幕</h2>
+          {/* <h2 style={{ marginRight: '20px', fontSize: '24px' }}>{item.totalDanmakuCount} 條彈幕</h2> */}
           {
             toggleDmkVisible ? <Button type="text" icon={<EyeOutlined style={{ fontSize: '24px' }} onClick={handleDmkVisble}/> } />
             : <Button type="text" icon={<EyeInvisibleOutlined style={{ fontSize: '24px' }} onClick={handleDmkVisble}/> } />

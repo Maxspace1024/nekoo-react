@@ -5,8 +5,11 @@ import {
 } from '@ant-design/icons';
 
 import axiox from '../axiox';
+import { useAuth } from '../AuthContext';
 
 function UserFriend({item}) {
+  const {auth, setAuth} = useAuth()
+
   function handleInvite() {
     console.log("邀請")
     axiox.post("/api/v1/friendship/invite",
@@ -56,7 +59,7 @@ function UserFriend({item}) {
     .catch(e => console.error(e))
   }
 
-  const userId = parseInt(localStorage.getItem("userId"))
+  const userId = auth.userId
 
   return (
     <List.Item style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>

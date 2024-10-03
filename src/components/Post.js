@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Avatar, Image, Card, Menu, Dropdown, Button } from 'antd';
+import { Avatar, Image, Card, Menu, Dropdown, Button, Tooltip } from 'antd';
 import {
   UserOutlined, MoreOutlined,
   EditOutlined,
@@ -7,13 +7,18 @@ import {
   LockOutlined,
   EllipsisOutlined, 
   EyeOutlined, 
-  EyeInvisibleOutlined
+  EyeInvisibleOutlined,
+  UnorderedListOutlined
 } from '@ant-design/icons';
 import Danmaku3 from './Danmaku3';
 
 import axiox from '../axiox';
+import { useAuth } from '../AuthContext';
 
 function Post({item}) {
+  const {auth, setAuth} = useAuth()
+  const [items, setItems] = useState(null)
+
   const [toggleDmkVisible, setToggleDmkVisible] = useState(true)
 
   function deletePost() {
@@ -41,23 +46,27 @@ function Post({item}) {
     setToggleDmkVisible(prev => !prev)
   }
 
-  const items = item.userId === parseInt(localStorage.getItem("userId")) ? [
-    // {
-    //   label: '編輯',
-    //   key: 'edit',
-    //   icon: <EditOutlined />
-    // },
-    {
-      label: '刪除',
-      key: 'delete',
-      danger: true,
-      icon: <DeleteOutlined />
-    },
-  ] : [];
-
+  useEffect(() => {
+    if (auth != null || Object.keys(auth).length !== 0) {
+      setItems(item.userId === auth.userId ? [
+          {
+            label: '編輯',
+            key: 'edit',
+            icon: <EditOutlined />
+          },
+          {
+            label: '刪除',
+            key: 'delete',
+            danger: true,
+            icon: <DeleteOutlined />
+          },
+        ] : []
+      );
+    }
+  }, [setAuth])
 
   return (
-    <Card style={{ marginBottom: '20px', width: '100%', boxShadow: '1px 1px 8px lightgray' }}>
+    <Card style={{ marginBottom: '20px', width: '100%', boxShadow: '1px 1px 8px lightgray', userSelect: 'none' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           {item.userAvatarPath ? (
@@ -73,10 +82,19 @@ function Post({item}) {
 
         {/* 右上角統計數據和選單按鈕 */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          {/* <h2 style={{ marginRight: '20px', fontSize: '24px' }}>{item.totalDanmakuCount} 條彈幕</h2> */}
+          <h2 style={{ marginRight: '20px', fontSize: '24px' }}>{item.totalDanmakuCount} 條彈幕</h2>
+          <Tooltip title={'清單閱覽模式'}>
+            <Button type="text" icon={<UnorderedListOutlined style={{ fontSize: '24px' }} onClick={() => {}}/> } />
+          </Tooltip>
           {
-            toggleDmkVisible ? <Button type="text" icon={<EyeOutlined style={{ fontSize: '24px' }} onClick={handleDmkVisble}/> } />
-            : <Button type="text" icon={<EyeInvisibleOutlined style={{ fontSize: '24px' }} onClick={handleDmkVisble}/> } />
+            toggleDmkVisible ? 
+              <Tooltip title={'彈幕開啟'}>
+                <Button type="text" icon={<EyeOutlined style={{ fontSize: '24px' }} onClick={handleDmkVisble}/> } />
+              </Tooltip>
+            : 
+              <Tooltip title={'彈幕關閉'}>
+                <Button type="text" icon={<EyeInvisibleOutlined style={{ fontSize: '24px' }} onClick={handleDmkVisble}/> } />
+              </Tooltip>
           }
           <Dropdown
             menu={{

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Layout, Menu, List, Avatar, notification, Input, AutoComplete } from 'antd';
+import { Layout, Menu, List, Avatar, notification, Input, AutoComplete, Spin, Alert } from 'antd';
 import {
   BellOutlined,
   MessageOutlined,
@@ -14,7 +14,7 @@ import UserFriend from './components/UserFriend';
 import Post from './components/Post';
 import UploadPost from './components/UploadPost';
 import Login from './components/Login';
-
+import { useAuth } from "./AuthContext";
 import axiox from './axiox';
 import stompClient from './StompClient'
 
@@ -27,6 +27,9 @@ const scrollbarHiddenStyle = {
 };
 
 const Main = () => {
+  const { auth, setAuth } = useAuth();
+  const [loading, setLoading] = useState(true);
+
   const postScrollRef = useRef(null)
   const [postScrollLock, setPostScrollLock] = useState(false)
   const [postScrollPage, setPostScrollPage] = useState(0)
@@ -37,11 +40,6 @@ const Main = () => {
 
   const [channelConfig, setChannelConfig] = useState({})
 
-  const [userAvatarPath, setUserAvatarPath] = useState(localStorage.getItem("userAvatarPath"))
-  const [userName, setUserName] = useState(localStorage.getItem("userName"))
-  const [userId, setUserId] = useState(localStorage.getItem("userId"))
-  const [jwt, setJwt] = useState(localStorage.getItem("jwt"))
-  const [email, setEmail] = useState(localStorage.getItem("email"))
   const [isLoginValid, setIsLoginValid] = useState(false)
 
   const [posts, setPosts] = useState([])
@@ -50,19 +48,97 @@ const Main = () => {
   const [chatroomChannels, setChatroomChannels] = useState([])
 
   useEffect(() => {
-    const jwtStr = localStorage.getItem("jwt")
-    setEmail(localStorage.getItem("email"))
-    setUserAvatarPath(localStorage.getItem("userAvatarPath"))
-    setUserName(localStorage.getItem("userName"))
-    setUserId(localStorage.getItem("userId"))
-    setJwt(jwtStr)
-    if (jwtStr !== null) {
-      setIsLoginValid(true)
-      axiox.defaults.headers.common['Authorization'] = `Bearer ${jwtStr}`;
-    } else {
-      setIsLoginValid(false)
+    // check jwt
+    const jwtString = localStorage.getItem('jwt')
+    if ( jwtString !== "null" || jwtString.trim() !== "" ) {
+      axiox.defaults.headers.common['Authorization'] = `Bearer ${jwtString}`;
+      axiox.post("/api/v1/user/auth")
+      .then(response => {
+        const authInfo = response.data.data
+        if (JSON.stringify(authInfo) !== "{}") {
+          // authInfo.userId = String(authInfo.userId)
+          setAuth(authInfo)
+          setIsLoginValid(true)
+        }
+      })
+      .catch(e => console.error(e))
+      .finally(() => {
+        setLoading(false)
+      })
     }
-  }, [])
+  }, [setAuth])
+
+  // stomp
+  useEffect(() => {
+    if (auth !== null) {
+      stompClient.connect({}, (frame) => {
+        // #貼文
+        stompClient.subscribe(`/topic/post/new`, (msgPost) => {
+          setPosts(prev => [msgPost, ...prev])
+        })
+        stompClient.subscribe(`/topic/post/delete`, (msgPost) => {
+          setPosts(prev => 
+            prev.filter( p => p.postId !== msgPost.postId)
+          )
+        })
+
+        // 聊天室頻道
+        stompClient.subscribe(`/topic/chatroom/new/${auth.userId}`, (msgChatroom) => {
+          setChatroomChannels(prev => [msgChatroom, ...prev])
+        })
+
+        // 交友
+        stompClient.subscribe(`/topic/friendship/${auth.userId}`, (msgFriendships) => {
+          const dropdwonFriendships = msgFriendships.map((friendship,i) => (
+            {
+              value: i,
+              label: (
+                <UserFriend key={i} item={friendship} />
+              ),
+            }
+          ))
+          setOptions(dropdwonFriendships);
+        })
+        stompClient.subscribe(`/topic/friendship/new/${auth.userId}`, (msg) => {
+          console.log(msg)
+        })
+
+        // 交友通知(page)
+        stompClient.subscribe(`/topic/friendship/notification/${auth.userId}`, (msgFriendships) => {
+          setMyFriendships(msgFriendships)
+        })
+        // 新加入的交友通知
+        stompClient.subscribe(`/topic/friendship/notification/new/${auth.userId}`, (msgFriendship) => {
+          // 看看同friendship有沒有存在
+          console.log(msgFriendship)
+          setMyFriendships(prev => {
+            const index = prev.findIndex(item => item.friendshipId === msgFriendship.friendshipId);
+            if (index !== -1) {
+                // 如果找到，替换该对象
+                prev[index] = msgFriendship;
+            } else {
+                // 如果没有找到，将新的对象放在数组的最前面
+                prev.unshift(msgFriendship);
+            }
+            return prev
+          })
+        })
+
+        // 未讀訊息(page)
+        stompClient.subscribe(`/topic/message/notification/${auth.userId}`, (msgMessages) => {
+          console.log(msgMessages)
+          setMyMessages(msgMessages)
+        })
+        stompClient.subscribe(`/topic/message/notification/new/${auth.userId}`, (msgMessage) => {
+          console.log(msgMessage)
+        })
+        
+        fetchChannelPage()
+        stompClient.send("/app/friendship/notification", {Authorization: `Bearer ${auth.jwt}`}, {})
+        stompClient.send("/app/message/notification", {Authorization: `Bearer ${auth.jwt}`}, {})
+      })
+    }
+  }, [auth])
 
   function fetchPostPage() {
     axiox.post("/api/v1/postPage",
@@ -72,12 +148,13 @@ const Main = () => {
     ).then(response => {
       const data = response.data
       const success = data.success
-      const {page, totalPages} = data.data
-      if (success && postScrollPage < totalPages) {
-        setPosts(prev => [...prev, ...page])
+      if (data.data != null) {      
+        const {page, totalPages} = data.data
+        if (success && postScrollPage < totalPages) {
+          setPosts(prev => [...prev, ...page])
+        }
+        setPostScrollLock(false)
       }
-      setPostScrollLock(false)
-      console.log(data)
     })
     .catch(e => console.error(e))
   }
@@ -90,84 +167,17 @@ const Main = () => {
     ).then(response => {
       const data = response.data
       const success = data.success
-      const {page, totalPages} = data.data
-      if (success && channelScrollPage < totalPages) {
-        setChatroomChannels(prev => [...prev, ...page])
+      if (data.data != null) {      
+        const {page, totalPages} = data.data
+        if (success && channelScrollPage < totalPages) {
+          setChatroomChannels(prev => [...prev, ...page])
+        }
+        console.log(data)
+        // setChannelScrollLock(false)
       }
-      console.log(data)
-      // setChannelScrollLock(false)
     })
     .catch(e => console.error(e))
   }
-
-  useEffect(() => {
-    stompClient.connect({}, (frame) => {
-      // #貼文
-      stompClient.subscribe(`/topic/post/new`, (msgPost) => {
-        setPosts(prev => [msgPost, ...prev])
-      })
-      stompClient.subscribe(`/topic/post/delete`, (msgPost) => {
-        setPosts(prev => 
-          prev.filter( p => p.postId !== msgPost.postId)
-        )
-      })
-
-      // 聊天室頻道
-      stompClient.subscribe(`/topic/chatroom/new/${userId}`, (msgChatroom) => {
-        setChatroomChannels(prev => [msgChatroom, ...prev])
-      })
-
-      // 交友
-      stompClient.subscribe(`/topic/friendship/${userId}`, (msgFriendships) => {
-        const dropdwonFriendships = msgFriendships.map((friendship,i) => (
-          {
-            value: i,
-            label: (
-              <UserFriend item={friendship} />
-            ),
-          }
-        ))
-        setOptions(dropdwonFriendships);
-      })
-      stompClient.subscribe(`/topic/friendship/new/${userId}`, (msg) => {
-        console.log(msg)
-      })
-
-      // 交友通知(page)
-      stompClient.subscribe(`/topic/friendship/notification/${userId}`, (msgFriendships) => {
-        setMyFriendships(msgFriendships)
-      })
-      // 新加入的交友通知
-      stompClient.subscribe(`/topic/friendship/notification/new/${userId}`, (msgFriendship) => {
-        // 看看同friendship有沒有存在
-        console.log(msgFriendship)
-        setMyFriendships(prev => {
-          const index = prev.findIndex(item => item.friendshipId === msgFriendship.friendshipId);
-          if (index !== -1) {
-              // 如果找到，替换该对象
-              prev[index] = msgFriendship;
-          } else {
-              // 如果没有找到，将新的对象放在数组的最前面
-              prev.unshift(msgFriendship);
-          }
-          return prev
-        })
-      })
-
-      // 未讀訊息(page)
-      stompClient.subscribe(`/topic/message/notification/${userId}`, (msgMessages) => {
-        console.log(msgMessages)
-        setMyMessages(msgMessages)
-      })
-      stompClient.subscribe(`/topic/message/notification/new/${userId}`, (msgMessage) => {
-        console.log(msgMessage)
-      })
-      
-      fetchChannelPage()
-      stompClient.send("/app/friendship/notification", {Authorization: `Bearer ${jwt}`}, {})
-      stompClient.send("/app/message/notification", {Authorization: `Bearer ${jwt}`}, {})
-    })
-  }, [])
 
   // 側欄開闔
   const [collapsed, setCollapsed] = useState(false);
@@ -194,9 +204,15 @@ const Main = () => {
     if (!value) {
       setOptions([]);
     } else {
-      stompClient.send("/app/friendship", {Authorization: `Bearer ${jwt}`}, {searchName: value})
+      stompClient.send("/app/friendship", {Authorization: `Bearer ${auth.jwt}`}, {searchName: value})
     }
   };
+
+  const handleKeyDown = (e) => {
+    if (e.code === "Enter") {
+      console.log(e)
+    }
+  }
 
   const handleProfile = () => {
     console.log('個人主頁面')
@@ -204,9 +220,8 @@ const Main = () => {
 
   const handleLogout = () => {
     console.log('登出')
-    localStorage.removeItem("jwt")
-    localStorage.removeItem("userId")
-    localStorage.removeItem("userName")
+    setAuth({})
+    localStorage.removeItem('jwt')
     setIsLoginValid(false)
     window.location.href = '/'
   }
@@ -216,8 +231,7 @@ const Main = () => {
   }
 
   const menus = isLoginValid ? [
-    { label: <div style={{width: 200, textAlign: "right"}}>你好，{localStorage.getItem("userName")}</div>, key: 'nusername', } ,
-    { label: "個人資訊", key: 'nprofile', 
+    { label: <div style={{textAlign: "right"}}>{auth.userName}</div>, key: 'nprofile', 
       icon: <UserOutlined style={{ fontSize: '20px', color:'white' }} />, 
       onClick: () => handleProfile() 
     } ,
@@ -271,6 +285,76 @@ const Main = () => {
     });
   };
 
+  // body
+  // 如果還在載入中，顯示載入提示
+  if (loading) {
+    return (
+      <Layout style={{ minHeight: '100vh', backgroundColor: '#e5e7f0'}}>
+        <Header className="header" style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          padding: '0 4px 0px 20px',
+          backgroundColor: 'steelblue',
+          height: 48,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', userSelect: 'none', cursor: 'pointer' }}>
+            <div style={{ color: 'white', fontSize: '24px', fontWeight: 'bold', marginRight: '20px' }}>NEKOO</div>
+          </div>
+          <Menu mode="horizontal"  theme="dark" 
+          selectable={false}
+          style={{ 
+            display: 'flex', 
+            justifyContent: 'end', 
+            alignItems: 'center',
+            height: '100%',
+            border: 'none', 
+            backgroundColor: 'transparent',
+          }} 
+          items={menus}/>
+        </Header>
+        <div style={{ textAlign: 'center', padding: '50px' }}>
+          {loading && <Spin tip="Loading..."></Spin>}
+        </div>
+      </Layout>
+    )
+  }
+
+  // 如果 auth 仍然是 null，表示登入失敗或無法取得資料
+  if (!auth || !isLoginValid) {
+    // return <div>No user data available.</div>;
+    return (
+      <Layout style={{ minHeight: '100vh', backgroundColor: '#e5e7f0'}}>
+        <Header className="header" style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          padding: '0 4px 0px 20px',
+          backgroundColor: 'steelblue',
+          height: 48,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', userSelect: 'none', cursor: 'pointer' }}>
+            <div style={{ color: 'white', fontSize: '24px', fontWeight: 'bold', marginRight: '20px'}}>NEKOO</div>
+          </div>
+          <Menu mode="horizontal"  theme="dark" 
+          selectable={false}
+          style={{ 
+            display: 'flex', 
+            justifyContent: 'end', 
+            alignItems: 'center',
+            height: '100%',
+            border: 'none', 
+            backgroundColor: 'transparent',
+          }} 
+          items={menus}/>
+        </Header>
+        <Login />
+      </Layout>
+    )
+  }
+
   return (
     <Layout style={{ minHeight: '100vh', backgroundColor: '#e5e7f0'}}>
       <Header className="header" style={{ 
@@ -282,13 +366,14 @@ const Main = () => {
         height: 48,
         boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-        <div style={{ color: 'white', fontSize: '24px', fontWeight: 'bold', marginRight: '20px' }}>Nekoo</div>
+        <div style={{ display: 'flex', alignItems: 'center', userSelect: 'none', cursor: 'pointer' }}>
+        <div style={{ color: 'white', fontSize: '24px', fontWeight: 'bold', marginRight: '20px' }}>NEKOO</div>
           { isLoginValid && 
             <AutoComplete
               options={options}
               onSearch={handleSearch}
-              style={{ width: 320 }}
+              onInputKeyDown={handleKeyDown}
+              style={{ width: 280 }}
             >
               <Search
                 placeholder="搜尋用戶"
@@ -311,12 +396,12 @@ const Main = () => {
           height: '100%',
           border: 'none', 
           backgroundColor: 'transparent',
-          maxWidth: 800
+          width: 600
         }} 
         items={menus}/>
       </Header>
 
-      { isLoginValid && <Layout>
+      <Layout>
         <Content style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 48px)', backgroundColor: '#e5e7f0' }}>
           <div style={{ 
             flexGrow: 1, 
@@ -380,8 +465,6 @@ const Main = () => {
         </Sider>
         <ChatRoomModal visible={true} config={channelConfig} />
       </Layout>
-      }
-      {!isLoginValid && <Login />}
     </Layout>
   );
 };

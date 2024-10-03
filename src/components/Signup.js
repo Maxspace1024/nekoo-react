@@ -1,14 +1,10 @@
 import React, {useState} from 'react';
-import { Form, Input, Button, Card } from 'antd';
+import { Form, Input, Button, Card, notification } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import axiox from '../axiox';
 
 const Signup = ({onCancel}) => {
   const [errorMessage, setErrorMessage] = useState("");
-
-  const onHandleLogin = () => {
-    // navigate("/login")
-	}
 
 	const onHandleSignup = (data) => {
     console.log('Received values of form: ', data);
@@ -18,8 +14,28 @@ const Signup = ({onCancel}) => {
       const data = res.data
       if (data.success) {
         onCancel()
+        notification.open({
+          placement: 'top',
+          message: '註冊成功',
+          description: '您的帳號已成功註冊！',
+          style: {
+            backgroundColor: '#93FF93',
+            borderRadius: 8
+          },
+          duration: 3,
+        });
       } else {
         setErrorMessage(data.error)
+        notification.open({
+          placement: 'top',
+          message: '註冊失敗',
+          description: '請重新註冊',
+          style: {
+            backgroundColor: '#FF7575',
+            borderRadius: 8
+          },
+          duration: 3,
+        });
       }
     })
     .catch(e => {console.error(e)})
@@ -32,7 +48,8 @@ const Signup = ({onCancel}) => {
 	};
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 48px)', }}>
+    // <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 48px)', }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center',}}>
       <Card
         title="註冊"
         style={{ width: 300, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)' }}
@@ -77,9 +94,6 @@ const Signup = ({onCancel}) => {
           <Form.Item>
             <Button type="primary" htmlType="submit" block onClick={onHandleSignup}>
               註冊
-            </Button>
-            <Button type="link" block onClick={onHandleLogin}>
-              登入
             </Button>
             <p style={{margin: 0, minHeight: "20px", color: "red", textAlign: "center" }}>{errorMessage}</p>
           </Form.Item>

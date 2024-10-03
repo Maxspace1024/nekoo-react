@@ -1,13 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { Modal, Input, Button, Upload, message, Avatar } from 'antd';
+import React, { useEffect, useRef, useState } from 'react';
+import { Modal, Input, Button, Upload, message, Avatar, Tooltip } from 'antd';
 import { SendOutlined, UploadOutlined, UserOutlined } from '@ant-design/icons';
 
+import axiox from '../axiox';
 import stompClient from '../StompClient';
-
-const chatLogs = [
-  { chatLogId: 1, chatroomId: "asdf", userAvatarPath: "https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/cbb9848a-9514-49f5-8d10-0186aa9ce538.jpg", content: "你好！", sender: "other", createAt: "2024-09-28T04:10:42.417Z" },
-  { chatLogId: 2, chatroomId: "asdf", userAvatarPath: "https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/cbb9848a-9514-49f5-8d10-0186aa9ce538.jpg", content: "嗨，最近如何？", sender: "self", createAt: "2024-09-28T04:11:42.417Z" },
-];
+import { useAuth } from '../AuthContext';
 
 const ChatBubble = ({item}) => {
   return (
@@ -35,17 +32,25 @@ const ChatBubble = ({item}) => {
             color: item.sender === 'self' ? 'white' : 'black',
           }}
         >
-          {item.content}
+          <Tooltip title={new Date(item.createAt).toLocaleString('zh-TW', { hour12: false })}>
+            <div style={{ 
+              cursor: 'pointer' // 讓使用者知道此區域可以互動
+            }}>
+              {item.content}
+            </div>
+          </Tooltip>
         </div>
         <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>
-          {new Date(item.createAt).toLocaleString()}
+          {new Date(item.createAt).toLocaleString('zh-TW', { hour12: true, hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>
   )
 }
 
 const ChatRoomModal = ({config}) => {
-  const [messages, setMessages] = useState(chatLogs);
+  const {auth, setAuth} = useAuth()
+
+  const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const [isChatRoomOpen, setChatRoomOpen] = useState(false)
 
@@ -54,27 +59,60 @@ const ChatRoomModal = ({config}) => {
   }
 
   useEffect(() => {
-    console.log(config)
     setChatRoomOpen(true)
-    stompClient.subscribe(`/topic/chatroom/${config.chatroomUuid}`, (msg) => {
-      console.log(JSON.parse(msg.body))
+    stompClient.subscribe(`/topic/chatroom/${config.chatroomUuid}`, (msgChatLog) => {
+      const userId = auth.userId
+      msgChatLog.sender = msgChatLog.userId === userId ? 'self' : 'other'
+      setMessages(prev => [...prev, msgChatLog])
     })
+
+    if (config.chatroomId) {
+      axiox.post("/api/v1/chat/log",
+        {
+          chatroomId: config.chatroomId
+        }
+      ).then(response => {
+        const data = response.data
+        const success = data.success
+        if (success) {
+          const chatLogs = data.data
+          const userId = auth.userId
+          for(let chatLog of chatLogs) {
+            chatLog.sender = chatLog.userId === userId ? 'self' : 'other'
+          }
+          setMessages(chatLogs)
+        }
+      })
+      .catch(e => console.error(e))
+    }
+
+    return () => stompClient.unsubscribe(`/topic/chatroom/${config.chatroomUuid}`)
   }, [config])
+  
+  useEffect(() => {
+    const messageScroll = document.getElementById("messageScroll")
+    if (messageScroll) {
+      messageScroll.lastElementChild?.scrollIntoView({  block: 'end' });
+    }
+  }, [messages])
 
   const handleSend = () => {
     if (inputText.trim()) {
-      // setMessages([...messages, {
-      //   id: messages.length + 1,
-      //   text: inputText,
-      //   sender: "self",
-      //   time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      // }]);
-      stompClient.send(`/chatroom`, {Authorization: `Bearer ${localStorage.getItem("jwt")}`}, 
-        {
-          chatroomId: config.chatroomId,
-          content: inputText
+      const formData = new FormData()
+      if ( "chatroomId" !== null )      formData.append("chatroomId", config.chatroomId)
+      if ( "chatroomUuid" !== null )      formData.append("chatroomUuid", config.chatroomUuid)
+      if ( "content" !== null )         formData.append("content", inputText)
+      // if ( "files" !== null )         formData.append("files", files)
+      
+      axiox.post("/api/v1/chat", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
         }
-      )
+      })
+      .then(res => {
+        console.log(res)
+      })
+      .catch(e => {console.error(e)})
       setInputText("");
     }
   };
@@ -88,15 +126,32 @@ const ChatRoomModal = ({config}) => {
   };
 
   return (
+    <div>
     <Modal
-      title={<div style={{ textAlign: 'left' }}>聊天室</div>}
+      title={
+        <div style={{ fontSize: 16, textAlign: 'left' }}>
+          {/* <Avatar src={auth.userAvatarPath} style={{marginRight: 8}}/> */}
+          {config.chatroomName}
+        </div>
+      }
       centered
       open={isChatRoomOpen}
       footer={null}
       onCancel={hanleModalCancel}
-      width={600}
+      width={480}
     >
-      <div style={{ height: 400, overflowY: 'auto', marginBottom: 16, scrollbarWidth: 'none', msOverflowStyle: 'none'}} onScroll={(e) => {console.log(e)}}>
+      <div id="messageScroll"
+      style={{ 
+        height: 400, 
+        overflowY: 'scroll', 
+        marginBottom: 16, 
+        border: '1px solid rgba(0,0,0,0.3)', 
+        borderRadius: 8, 
+        padding: 8, 
+        scrollbarWidth: 'none', 
+        msOverflowStyle: 'none'
+        }}
+      >
         {messages.map(msg => (
           <ChatBubble key={msg.chatLogId} item={msg} />
         ))}
@@ -112,13 +167,14 @@ const ChatRoomModal = ({config}) => {
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onPressEnter={handleSend}
-          style={{ flex: 1, margin: '0 8px' }}
+          style={{ flex: 1}}
         />
         <Button type="primary" icon={<SendOutlined />} onClick={handleSend}>
           發送
         </Button>
       </div>
     </Modal>
+    </div>
   );
 };
 

@@ -9,7 +9,7 @@ import userEvent from '@testing-library/user-event';
 const DanmakuBubble = ({item}) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const handleDoubleClick = () => {
+  const handleClick = () => {
     setIsModalVisible(true);
   };
 
@@ -36,7 +36,7 @@ const DanmakuBubble = ({item}) => {
           outline: 'none',
           userSelect: 'none',
         }}
-        onDoubleClick={handleDoubleClick}
+        onClick={handleClick}
       >
         {item.content}
       </span>

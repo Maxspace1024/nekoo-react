@@ -1,10 +1,12 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import { Form, Input, Button, Card, Modal } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { useAuth } from "../AuthContext";
 import axiox from '../axiox';
 import Signup from './Signup';
 
 const Login = () => {
+	const { auth, setAuth } = useAuth();
 	const [errorMessage, setErrorMessage] = useState("");
 	const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -15,11 +17,8 @@ const Login = () => {
 				const data = res.data.data
 				if (isSuccess) {
 					localStorage.setItem("jwt", data.jwt)
-					localStorage.setItem("userId", data.userId)
-					localStorage.setItem("userName", data.userName)
-					localStorage.setItem("userAvatarPath", data.userAvatarPath)
-					localStorage.setItem("email", data.email)
 					window.location.href = "/"
+					setAuth({jwt: data.jwt})
 				} else {
 					setErrorMessage(res.data.error)
 				}
@@ -85,8 +84,10 @@ const Login = () => {
 			</Card>
 			<Modal
 				open={isModalOpen}
+				footer={null}
 				onCancel={() => setIsModalOpen(false)}
 				centered
+				maskStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.1)' }}
 			>
 				<Signup onCancel={() => setIsModalOpen(false)}/>
 			</Modal>

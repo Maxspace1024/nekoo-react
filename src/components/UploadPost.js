@@ -1,9 +1,15 @@
 import React, {useState, useEffect, useRef} from 'react';
-import { Button, Modal, Form, Avatar, Input, Upload, Tag, } from 'antd';
-import { PlusCircleOutlined , UploadOutlined, UserOutlined} from '@ant-design/icons';
+import { Button, Modal, Form, Avatar, Input, Upload, Tag, Spin} from 'antd';
+import { PlusOutlined , UploadOutlined, UserOutlined, InboxOutlined} from '@ant-design/icons';
 import axiox from '../axiox';
+import { useAuth } from '../AuthContext';
+
+const {Dragger} = Upload
 
 const UploadPost = () => {
+  const {auth, setAuth} = useAuth()
+  const [loading, setLoading] = useState(true);
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState([]);
@@ -16,8 +22,11 @@ const UploadPost = () => {
   const [userAvatarPath, setUserAvatarPath] = useState('')
 
   useEffect(() => {
-    setUserAvatarPath(localStorage.getItem("userAvatarPath"))
-  }, [])
+    if (auth != null) {
+      setUserAvatarPath(auth.userAvatarPath)
+      setLoading(false)
+    }
+  }, [setAuth])
 
   // modal
   const showModal = () => {
@@ -40,7 +49,6 @@ const UploadPost = () => {
     
     axiox.post("/api/v1/post", formData, {
       headers: {
-        // "Authorization": `Bearer ${localStorage.getItem("jwt")}`,
         'Content-Type': 'multipart/form-data',
       }
     })
@@ -58,7 +66,6 @@ const UploadPost = () => {
     setInputValue(false)
     setInputValue('')
     setFileList([])
-    console.log('Modal cancelled');
   };
 
   // uploadFile
@@ -98,6 +105,11 @@ const UploadPost = () => {
   const onFinish = (values) => {
     console.log('Submitted tags:', tags);
   };
+
+  if (loading) {
+    return <div></div>
+  }
+
 
   return (
     <>
@@ -163,26 +175,20 @@ const UploadPost = () => {
               beforeUpload={() => false}  
               fileList={fileList}
               onChange={handleFileChange}
-              multiple
+              listType={'picture-card'}
+              showUploadList={{ showPreviewIcon: false, showRemoveIcon: true }}
               required
               >
-              <Button icon={<UploadOutlined />}>上傳</Button>
+              {fileList.length >= 1 ? null : (
+                <div>
+                  <PlusOutlined />
+                  <div style={{ marginTop: 8 }}>上傳</div>
+                </div>
+              )}
             </Upload>
           </Form.Item>
         </Form>
       </Modal>
-      {/* <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        borderRadius: 8,
-        backgroundColor: 'lightsteelblue',
-        padding: 16,
-        boxShadow: '1px 1px 8px lightgray',
-        margin: '16px 0px'}}
-        onClick={showModal}
-        >
-        <Avatar icon={<PlusCircleOutlined />} size={32}/>
-      </div> */}
       <div style={{
         display: 'flex',
         justifyContent: 'start',
@@ -190,7 +196,9 @@ const UploadPost = () => {
         backgroundColor: 'steelblue',
         padding: '16px',
         boxShadow: '1px 1px 8px lightgray',
-        margin: '16px 0px'}}
+        margin: '16px 0px', 
+        userSelect: 'none'
+      }}
         onClick={showModal}
       >
         <div style={{
@@ -217,7 +225,7 @@ const UploadPost = () => {
           border: '1px solid cornflowerblue',
           width: '90%'}}
         >
-        {`${localStorage.getItem("userName")}，有沒有快樂發表一下呀`}
+        {`${auth.userName}，有沒有快樂發表一下呀`}
         </div>
       </div>
     </>

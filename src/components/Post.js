@@ -8,18 +8,22 @@ import {
   EllipsisOutlined, 
   EyeOutlined, 
   EyeInvisibleOutlined,
-  UnorderedListOutlined
+  UnorderedListOutlined,
+  BookOutlined
 } from '@ant-design/icons';
 import Danmaku3 from './Danmaku3';
 
 import axiox from '../axiox';
 import { useAuth } from '../AuthContext';
+import VideoPlayer2 from './VideoPlayer2';
+import DanamkuVideo from './DanmakuVideo';
 
 function Post({item}) {
   const {auth, setAuth} = useAuth()
   const [items, setItems] = useState(null)
 
   const [toggleDmkVisible, setToggleDmkVisible] = useState(true)
+  const [isListOpen, setIsListOpen] = useState(false)
 
   function deletePost() {
     axiox.post("/api/v1/post/delete", 
@@ -45,6 +49,15 @@ function Post({item}) {
   const handleDmkVisble = (e) => {
     setToggleDmkVisible(prev => !prev)
   }
+
+  const handleOpenList = (e) => {
+    setIsListOpen(true)
+  }
+
+  const handleCloseList = (e) => {
+    setIsListOpen(false)
+  }
+ 
 
   useEffect(() => {
     if (auth != null || Object.keys(auth).length !== 0) {
@@ -83,28 +96,30 @@ function Post({item}) {
         {/* 右上角統計數據和選單按鈕 */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <h2 style={{ marginRight: '20px', fontSize: '24px' }}>{item.totalDanmakuCount} 條彈幕</h2>
-          <Tooltip title={'清單閱覽模式'}>
-            <Button type="text" icon={<UnorderedListOutlined style={{ fontSize: '24px' }} onClick={() => {}}/> } />
-          </Tooltip>
-          {
-            toggleDmkVisible ? 
+          <div style={{display: 'flex', gap: 8}}>
+            <Tooltip title={'清單閱覽模式'}>
+              <Button type="text" icon={<UnorderedListOutlined style={{ fontSize: '24px' }} /> } onClick={handleOpenList}/>
+            </Tooltip>
+            {
+              toggleDmkVisible ? 
               <Tooltip title={'彈幕開啟'}>
-                <Button type="text" icon={<EyeOutlined style={{ fontSize: '24px' }} onClick={handleDmkVisble}/> } />
-              </Tooltip>
-            : 
+                  <Button type="text" icon={<EyeOutlined style={{ fontSize: '24px' }} onClick={handleDmkVisble}/> } />
+                </Tooltip>
+              : 
               <Tooltip title={'彈幕關閉'}>
-                <Button type="text" icon={<EyeInvisibleOutlined style={{ fontSize: '24px' }} onClick={handleDmkVisble}/> } />
-              </Tooltip>
-          }
-          <Dropdown
-            menu={{
-              items,
-              onClick: handleMenuClick,
-            }}
-            trigger={['click']}
-          >
-            <Button type="text" icon={<EllipsisOutlined style={{ fontSize: '24px' }}/> } />
-          </Dropdown>
+                  <Button type="text" icon={<EyeInvisibleOutlined style={{ fontSize: '24px' }} onClick={handleDmkVisble}/> } />
+                </Tooltip>
+            }
+            <Dropdown
+              menu={{
+                items,
+                onClick: handleMenuClick,
+              }}
+              trigger={['click']}
+              >
+              <Button type="text" icon={<EllipsisOutlined style={{ fontSize: '24px' }}/> } />
+            </Dropdown>
+          </div>
         </div>
       </div>
 
@@ -121,14 +136,17 @@ function Post({item}) {
           // image
           return (
             <div key={`asset-${asset.id}`} style={{ width: '100%', borderRadius: 8, display: 'flex', justifyContent: 'center', backgroundColor: 'white' }}>
-              <Danmaku3 asset={asset} dmkVisible={toggleDmkVisible} />
+              <Danmaku3 asset={asset} dmkVisible={toggleDmkVisible} listOpen={isListOpen} onCancel={handleCloseList} />
             </div>
           )
         } else if (asset.type === 1 ) {
           // video
           return (
             <div key={`asset-${asset.id}`} style={{ width: '100%', borderRadius: 8, display: 'flex', justifyContent: 'center', backgroundColor: 'white' }}>
-              <video controls width="100%" src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`} />
+              {/* <video controls width="100%" src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`} /> */}
+              {/* <VideoPlayer src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`} /> */}
+              {/* <VideoPlayer2 src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`} /> */}
+              <DanamkuVideo src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`} />
             </div>
           )
         }

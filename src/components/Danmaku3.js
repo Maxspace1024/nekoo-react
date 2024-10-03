@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Image, Input, Avatar, Modal } from 'antd';
+import { Image, Input, Avatar, Modal, Tooltip } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 
 import axiox from '../axiox';
@@ -42,7 +42,7 @@ const DanmakuBubble = ({item}) => {
       </span>
 
       <Modal
-        title="彈幕內容"
+        title={<div style={{fontSize: 24}}>彈幕內容</div>}
         centered
         open={isModalVisible}
         onCancel={handleCancel}
@@ -61,13 +61,13 @@ const DanmakuBubble = ({item}) => {
             </div>
           </div>
         </div>
-        <p>{item.content}</p>
+        <h3>{item.content}</h3>
       </Modal>
     </div>
   )
 }
 
-function Danmaku3({ asset, dmkVisible }) {
+function Danmaku3({ asset, dmkVisible, listOpen, onCancel }) {
   const [inputs, setInputs] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [draggedInput, setDraggedInput] = useState(null);
@@ -202,7 +202,7 @@ function Danmaku3({ asset, dmkVisible }) {
       <Image
         src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`}
         alt="image"
-        preview={false}
+        // preview={false}
         style={{ borderRadius: 8, userSelect: 'none', WebkitUserDrag: 'none'}}
         onClick={handleImageClick}
       />
@@ -240,6 +240,35 @@ function Danmaku3({ asset, dmkVisible }) {
           />
         ))}
       </div>
+      <Modal
+        title={<div style={{fontSize: 24}}>彈幕清單</div>}
+        footer={null}
+        open={listOpen}
+        onCancel={onCancel}
+      >
+        <div style={{overflowY: 'auto', maxHeight: 600}}>
+          {dmks.map(item => (
+            <div style={{margin: '24px 0px'}}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Tooltip title={new Date(item.createAt).toLocaleString()}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    {item.userAvatarPath ? (
+                      <Avatar size={56} src={item.userAvatarPath} />
+                    ) : (
+                      <Avatar size={56} icon={<UserOutlined />} />
+                    )}
+                    <div style={{ marginLeft: '10px' }}>
+                      <strong style={{ fontSize: '20px' }}>{item.userName}</strong><br />
+                      <span style={{ color: '#888' }}>{new Date(item.createAt).toLocaleString('zh-TW', {hour12: true, hour: '2-digit', minute: '2-digit'})}</span>
+                    </div>
+                  </div>
+                </Tooltip>
+                <h3 style={{textWrap: 'wrap'}}>{item.content}</h3>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Modal>
     </div>
   );
 }

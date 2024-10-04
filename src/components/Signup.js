@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { Form, Input, Button, Card, notification } from 'antd';
+import { Form, Input, Button, Card, notification, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import axiox from '../axiox';
 
@@ -14,28 +14,10 @@ const Signup = ({onCancel}) => {
       const data = res.data
       if (data.success) {
         onCancel()
-        notification.open({
-          placement: 'top',
-          message: '註冊成功',
-          description: '您的帳號已成功註冊！',
-          style: {
-            backgroundColor: '#93FF93',
-            borderRadius: 8
-          },
-          duration: 3,
-        });
+        message.success("註冊成功")
       } else {
         setErrorMessage(data.error)
-        notification.open({
-          placement: 'top',
-          message: '註冊失敗',
-          description: '請重新註冊',
-          style: {
-            backgroundColor: '#FF7575',
-            borderRadius: 8
-          },
-          duration: 3,
-        });
+        message.error("註冊失敗")
       }
     })
     .catch(e => {console.error(e)})

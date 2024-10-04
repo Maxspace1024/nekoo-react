@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import { Form, Input, Button, Card, Modal } from 'antd';
+import { Form, Input, Button, Card, Modal, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useAuth } from "../AuthContext";
 import axiox from '../axiox';
@@ -19,8 +19,10 @@ const Login = () => {
 					localStorage.setItem("jwt", data.jwt)
 					window.location.href = "/"
 					setAuth({jwt: data.jwt})
+					message.success("登入成功")
 				} else {
 					setErrorMessage(res.data.error)
+					message.error("登入失敗")
 				}
 			})
 			.catch(e => {console.error(e)})

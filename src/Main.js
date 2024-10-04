@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Layout, Menu, List, Avatar, notification, Input, AutoComplete, Spin, Alert } from 'antd';
+import { Layout, Menu, List, Avatar, notification, Input, AutoComplete, Spin, Alert, message } from 'antd';
 import {
   BellOutlined,
   MessageOutlined,
@@ -56,7 +56,6 @@ const Main = () => {
       .then(response => {
         const authInfo = response.data.data
         if (JSON.stringify(authInfo) !== "{}") {
-          // authInfo.userId = String(authInfo.userId)
           setAuth(authInfo)
           setIsLoginValid(true)
         }
@@ -65,6 +64,8 @@ const Main = () => {
       .finally(() => {
         setLoading(false)
       })
+    } else {
+      setIsLoginValid(false)
     }
   }, [setAuth])
 
@@ -222,7 +223,6 @@ const Main = () => {
     console.log('登出')
     setAuth({})
     localStorage.removeItem('jwt')
-    setIsLoginValid(false)
     window.location.href = '/'
   }
 

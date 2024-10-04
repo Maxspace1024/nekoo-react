@@ -3,7 +3,7 @@ import { Button, Input } from 'antd';
 // import 'antd/dist/antd.css';
 import './VideoPlayer.css';  // 自訂的樣式文件
 
-const VideoPlayer = () => {
+const VideoPlayer = ({src}) => {
   const videoRef = useRef(null);
   const [barrageList, setBarrageList] = useState([]); // 保存彈幕列表
   const [barrageText, setBarrageText] = useState(''); // 輸入的彈幕文字
@@ -45,7 +45,7 @@ const VideoPlayer = () => {
   return (
     <div className="video-container">
       <video ref={videoRef} controls className="video-player">
-        <source src="duck.mp4" type="video/mp4" />
+        <source src={src} />
       </video>
 
       {/* 彈幕層 */}
@@ -71,4 +71,4 @@ const VideoPlayer = () => {
   );
 };
 
-export default VideoPlayer;
+export default VideoPlayer

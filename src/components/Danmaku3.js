@@ -202,7 +202,7 @@ function Danmaku3({ asset, dmkVisible, listOpen, onCancel }) {
       <Image
         src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`}
         alt="image"
-        // preview={false}
+        preview={false}
         style={{ borderRadius: 8, userSelect: 'none', WebkitUserDrag: 'none'}}
         onClick={handleImageClick}
       />
@@ -248,7 +248,7 @@ function Danmaku3({ asset, dmkVisible, listOpen, onCancel }) {
       >
         <div style={{overflowY: 'auto', maxHeight: 600}}>
           {dmks.map(item => (
-            <div style={{margin: '24px 0px'}}>
+            <div key={`list-danmaku-${item.danmakuId}`} style={{margin: '24px 0px'}}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Tooltip title={new Date(item.createAt).toLocaleString()}>
                   <div style={{ display: 'flex', alignItems: 'center' }}>

@@ -15,8 +15,7 @@ import Danmaku3 from './Danmaku3';
 
 import axiox from '../axiox';
 import { useAuth } from '../AuthContext';
-import VideoPlayer2 from './VideoPlayer2';
-import DanamkuVideo from './DanmakuVideo';
+import VideoPlayer from './VideoPlayer';
 
 function Post({item}) {
   const {auth, setAuth} = useAuth()
@@ -144,9 +143,7 @@ function Post({item}) {
           return (
             <div key={`asset-${asset.id}`} style={{ width: '100%', borderRadius: 8, display: 'flex', justifyContent: 'center', backgroundColor: 'white' }}>
               {/* <video controls width="100%" src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`} /> */}
-              {/* <VideoPlayer src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`} /> */}
-              {/* <VideoPlayer2 src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`} /> */}
-              <DanamkuVideo src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`} />
+              <VideoPlayer src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`} />
             </div>
           )
         }

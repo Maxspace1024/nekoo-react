@@ -14,7 +14,7 @@ import {
 import Danmaku3 from './Danmaku3';
 
 import axiox from '../axiox';
-import { useAuth } from '../AuthContext';
+import { useAuth } from '../context/AuthContext';
 import VideoPlayer from './VideoPlayer';
 
 function Post({item}) {

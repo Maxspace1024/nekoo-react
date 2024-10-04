@@ -14,7 +14,7 @@ import UserFriend from './components/UserFriend';
 import Post from './components/Post';
 import UploadPost from './components/UploadPost';
 import Login from './components/Login';
-import { useAuth } from "./AuthContext";
+import { useAuth } from "./context/AuthContext";
 import axiox from './axiox';
 import stompClient from './StompClient'
 

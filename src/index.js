@@ -1,9 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import { AuthProvider } from "./AuthContext";
+import { AuthProvider } from "./context/AuthContext";
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { PostProvider } from './context/PostContext';
+import { ChatroomProvider } from './context/ChatroomContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -11,7 +13,11 @@ root.render(
   //   <App />
   // </React.StrictMode>
   <AuthProvider>
-    <App />
+    <PostProvider>
+      <ChatroomProvider>
+        <App />
+      </ChatroomProvider>
+    </PostProvider>
   </AuthProvider>
 );
 

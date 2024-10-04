@@ -1,5 +1,5 @@
 // StompClient.js
-
+import HOST from './BaseConfig';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 
@@ -13,8 +13,7 @@ class StompClient {
     }
 
     // 初始化 SockJS 和 Stomp
-    this.socket = new SockJS('http://localhost:8080/ws');
-    // this.socket = new SockJS('https://nekoo.xyz/ws');
+    this.socket = new SockJS(`${HOST}/ws`);
     this.stompClient = Stomp.over(this.socket);
 
     // 預設為未連接狀態
@@ -70,7 +69,7 @@ class StompClient {
 
   unsubscribe(destination) {
     if (this.isConnected) {
-      return this.stompClient.subscribe(destination);
+      return this.stompClient.unsubscribe(destination);
     } else {
       console.error('STOMP 客戶端尚未連接，無法訂閱');
     }

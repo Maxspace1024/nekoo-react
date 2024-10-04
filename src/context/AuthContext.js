@@ -6,9 +6,11 @@ const AuthContext = createContext();
 // 建立一個 AuthProvider，讓所有子元件可以共用
 export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState(null); // 預設值是 null，表示沒有使用者登入
+  const [isLoginValid, setIsLoginValid] = useState(false)
+  const [isWsConnected, setIsWsConnected] = useState(false)
 
   return (
-    <AuthContext.Provider value={{ auth, setAuth }}>
+    <AuthContext.Provider value={{ auth, setAuth, isLoginValid, setIsLoginValid, isWsConnected, setIsWsConnected }}>
       {children}
     </AuthContext.Provider>
   );

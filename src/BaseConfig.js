@@ -1,4 +1,4 @@
-const HOST = 'http://localhost:8080'
-// const HOST = 'https://nekoo.xyz'
+export const HOST = 'http://localhost:8080'
+// export const HOST = 'https://nekoo.xyz'
 
-export default HOST
+export const S3HOST = 'https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/'

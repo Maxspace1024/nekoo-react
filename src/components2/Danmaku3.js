@@ -5,8 +5,11 @@ import { DeleteOutlined, UserOutlined } from '@ant-design/icons';
 import axiox from '../axiox';
 import stompClient from '../StompClient';
 import { useAuth } from '../context/AuthContext';
+import { S3HOST } from '../BaseConfig';
+import { useNavigate } from 'react-router-dom';
 
 const DanmakuBubble = ({item}) => {
+  const navigate = useNavigate()
   const {auth, setAuth} = useAuth()
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -17,6 +20,14 @@ const DanmakuBubble = ({item}) => {
   const handleCancel = () => {
     setIsModalVisible(false);
   };
+
+  const linkToSignlePost = () => {
+    // navigate(`/post/${item.assetId}`)
+  }
+
+  const linkToUserProfile = () => {
+    navigate(`/neco/${item.userId}`)
+  }
 
   const handleDeleteDmk = () => {
     axiox.post("/api/v1/danmaku/delete", {
@@ -68,10 +79,27 @@ const DanmakuBubble = ({item}) => {
         footer={null}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} >
+            <Tooltip title={'個人主頁'}>
+              <div onClick={linkToUserProfile}>
+                  {item.userAvatarPath ? (
+                    <Avatar size={56} src={S3HOST+item.userAvatarPath} />
+                  ) : (
+                    <Avatar size={56} icon={<UserOutlined />} />
+                  )}
+              </div>
+            </Tooltip>
+            <Tooltip title={'貼文主頁'}>
+              <div style={{ marginLeft: '10px' }} onClick={linkToSignlePost}>
+                <strong style={{ fontSize: '24px' }} >{item.userName}</strong><br />
+                <span style={{ color: '#888' }}>{new Date(item.createAt).toLocaleString()}</span>
+              </div>
+            </Tooltip>
+          </div>
+          {/* <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
             <div>
               {item.userAvatarPath ? (
-                <Avatar size={56} src={item.userAvatarPath} />
+                <Avatar size={56} src={S3HOST + item.userAvatarPath} />
               ) : (
                 <Avatar size={56} icon={<UserOutlined />} />
               )}
@@ -82,7 +110,7 @@ const DanmakuBubble = ({item}) => {
               </strong><br />
               <span style={{ color: '#888' }}>{new Date(item.createAt).toLocaleString()}</span>
             </div>
-          </div>
+          </div> */}
           <div style={{ display: 'flex', justifyContent: 'end', alignItems: 'center',flex: 1}}>
             { auth && auth.userId === item.userId &&
               <Button type={'text'} danger icon={<DeleteOutlined />} onClick={handleDeleteDmk}/>
@@ -300,7 +328,7 @@ function Danmaku3({ asset, dmkVisible, listOpen, onCancel, onDmkCountChange }) {
                 <Tooltip title={new Date(item.createAt).toLocaleString()}>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     {item.userAvatarPath ? (
-                      <Avatar size={56} src={item.userAvatarPath} />
+                      <Avatar size={56} src={S3HOST + item.userAvatarPath} />
                     ) : (
                       <Avatar size={56} icon={<UserOutlined />} />
                     )}

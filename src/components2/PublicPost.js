@@ -6,11 +6,14 @@ import Post from '../components2/Post'
 
 import stompClient from '../StompClient'
 import axiox from '../axiox'
+import { Spin } from 'antd'
+import CenterSpin from './CenterSpin'
 
 function PublicPost() {
   const {auth, setAuth, isLoginValid, isWsConnected, setIsWsConnected} = useAuth()
   const [posts, setPosts] = useState([])
 
+  const [loadingPost, setLoadingPost] = useState(false)
   const postScrollRef = useRef(null)
   const [postScrollLock, setPostScrollLock] = useState(false)
   const [postScrollPage, setPostScrollPage] = useState(0)
@@ -38,6 +41,7 @@ function PublicPost() {
   }, [isWsConnected])
 
   const fetchPostPage = () => {
+    setLoadingPost(true)
     axiox.post("/api/v1/postPage",
       {
         page: postScrollPage
@@ -56,6 +60,9 @@ function PublicPost() {
       }
     })
     .catch(e => console.error(e))
+    .finally(() => {
+      setLoadingPost(false)
+    })
   }
 
   const handlePostScroll = (e) => {
@@ -94,6 +101,9 @@ function PublicPost() {
         {posts.map(post => (
           <Post key={`post-${post.postId}`} item={post}/>
         ))}
+        { loadingPost && 
+          <CenterSpin />
+        }
       </div>
     </div>
   )

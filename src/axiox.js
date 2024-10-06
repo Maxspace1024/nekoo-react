@@ -1,4 +1,4 @@
-import HOST from './BaseConfig';
+import {HOST} from './BaseConfig';
 import axios from 'axios';
 
 const axiox = axios.create({

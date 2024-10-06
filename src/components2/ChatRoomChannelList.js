@@ -12,6 +12,7 @@ import stompClient from '../StompClient'
 import axiox from '../axiox'
 import ChatRoomWindow from './ChatRoomWindow';
 import { useChatroom } from '../context/ChatroomContext';
+import { S3HOST } from '../BaseConfig';
 
 const { Search } = Input;
 
@@ -126,7 +127,7 @@ function ChatRoomChannelList() {
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <div>
                   {item.chatroomAvatarPath ? (
-                    <Avatar size={48} src={item.chatroomAvatarPath} />
+                    <Avatar size={48} src={S3HOST + item.chatroomAvatarPath} />
                   ) : (
                     <Avatar size={48} icon={<UserOutlined />} />
                   )}

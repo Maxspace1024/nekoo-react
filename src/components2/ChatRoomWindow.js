@@ -6,6 +6,7 @@ import axiox from '../axiox';
 import stompClient from '../StompClient';
 import { useChatroom } from '../context/ChatroomContext';
 import { useAuth } from '../context/AuthContext';
+import { S3HOST } from '../BaseConfig';
 
 const ChatBubble = ({item}) => {
   return (
@@ -124,7 +125,7 @@ function ChatRoomWindow({item, onClose}) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             { item.chatroomAvatarPath ? (
-                <Avatar style={{marginRight: 8}} src={item.chatroomAvatarPath}/>
+                <Avatar style={{marginRight: 8}} src={S3HOST + item.chatroomAvatarPath}/>
               ) : (
                 <Avatar icon={<UserOutlined />} />
               )

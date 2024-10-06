@@ -4,6 +4,7 @@ import { PlusOutlined , UploadOutlined, UserOutlined, InboxOutlined, LockOutline
 import axiox from '../axiox';
 import { useAuth } from '../context/AuthContext';
 import xtyle from './CommonStyle';
+import { S3HOST } from '../BaseConfig';
 
 const UploadPost = () => {
   const {auth, setAuth} = useAuth()
@@ -207,7 +208,7 @@ const UploadPost = () => {
       >
         <div style={{width: 'auto'}}>
           { auth && auth.userAvatarPath ? (
-              <Avatar size={48} src={auth.userAvatarPath} />
+              <Avatar size={48} src={S3HOST + auth.userAvatarPath} />
             ) : (
               <Avatar size={48} icon={<UserOutlined />} />
             )
@@ -215,7 +216,7 @@ const UploadPost = () => {
         </div>
         
         <div style={xtyle.uploadPostHintInput}>
-          { auth && `${auth.userName}，有沒有快樂發表一下呀`}
+          { auth && `${auth.userName}，你在想什麼呀~`}
         </div>
       </div>
     </>

@@ -1,5 +1,5 @@
 // StompClient.js
-import HOST from './BaseConfig';
+import {HOST} from './BaseConfig';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 

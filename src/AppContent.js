@@ -16,6 +16,8 @@ import { useAuth } from './context/AuthContext';
 
 import stompClient from './StompClient';
 import axiox from './axiox';
+import Neco from './components2/Neco';
+import SinglePost from './components2/SinglePost';
 
 
 const { Header, Content, Sider } = Layout;
@@ -27,6 +29,8 @@ const MainPage = () => {
   const {friendshipNotifications, setFriendshipNotifications} = useFriendship()
   const [collapsed, setCollapsed] = useState(false);
   const [loading, setLoading] = useState(true)
+
+
 
   const [api, contextHolder] = notification.useNotification();
 
@@ -63,10 +67,6 @@ const MainPage = () => {
     if (auth !== null) {
       stompClient.connect({}, (frame) => {
         setIsWsConnected(true)
-        // 交友
-        // stompClient.subscribe(`/topic/friendship/${auth.userId}`, (msgFriendships) => {
-        //   console.log(msgFriendships)
-        // })
         stompClient.subscribe(`/topic/friendship/notification/new/${auth.userId}`, (msgFriendship) => {
           const isRecv = auth.userId === msgFriendship.receiverUserId
           if (isRecv) {
@@ -105,7 +105,9 @@ const MainPage = () => {
       })
 
       return () => {
-        stompClient.disconnect(() => {})
+        // stompClient.disconnect(() => {
+        //   setIsWsConnected(false)
+        // })
       }
     }
   }, [auth])
@@ -156,9 +158,12 @@ const MainPage = () => {
   const menus = isLoginValid ? [
     { 
       label: <div style={{textAlign: "right", ...xtyle.menuLabel}}>{auth ? auth.userName : ''}</div>,
-      key: 'nprofile', 
+      key: 'nneco', 
       icon: <UserOutlined style={xtyle.menuItem} />, 
-      onClick: () => {navigate('/profile')}
+      onClick: () => {
+        navigate(`/neco/${auth.userId}`)
+        // window.location.href = `/neco/${auth.userId}`
+      }
     } ,
     { 
       label:(
@@ -324,7 +329,8 @@ const MainPage = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/search" element={<Xearch />} />
                 <Route path="/publicPost" element={<PublicPost />} />
-                <Route path="/profile" element={<Profile />} />
+                <Route path="/neco/:userId" element={<Neco />} />
+                <Route path="/post/:postId" element={<SinglePost />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="*" element={<Navigate to="/" />} />
@@ -358,7 +364,6 @@ const AppContent = () => (
   </Router>
 );
 
-const Profile = () => <div>profile</div>;
 const Home = () => {
   return (
     <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 64px)'}}>

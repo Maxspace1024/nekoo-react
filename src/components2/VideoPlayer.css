@@ -29,11 +29,11 @@
   animation: moveBarrage 10s linear forwards;
 }
 
-.barrage-input {
+/* .barrage-input {
   display: flex;
   justify-content: space-between;
   margin-top: 10px;
-}
+} */
 
 .barrage-layer.fullscreen {
   width: 100vw;

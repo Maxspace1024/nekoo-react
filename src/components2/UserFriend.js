@@ -6,8 +6,11 @@ import {
 
 import axiox from '../axiox';
 import { useFriendship } from '../context/FriendshipContext';
+import { useAuth } from '../context/AuthContext';
+import { S3HOST } from '../BaseConfig';
 
 function UserFriend({item, userId}) {
+  const {auth, setAuth} = useAuth()
   const {friendshipNotifications, setFriendshipNotifications, searchFriendships, setSearchFriendships} = useFriendship()
 
   function updateSearchFriendships(msgFriendship) {
@@ -21,7 +24,7 @@ function UserFriend({item, userId}) {
     console.log("邀請")
     axiox.post("/api/v1/friendship/invite",
       {
-        senderUserId: localStorage.getItem("userId"),
+        senderUserId: auth.userId,
         receiverUserId: item.receiverUserId
       }
     ).then(res => {
@@ -110,7 +113,7 @@ function UserFriend({item, userId}) {
     <List.Item style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
       <div style={{ display: 'flex', alignItems: 'center' }}>
         {userAvatarPath ? (
-          <Avatar size={48} src={userAvatarPath} />
+          <Avatar size={48} src={ S3HOST + userAvatarPath} />
         ) : (
           <Avatar size={48} icon={<UserOutlined />} />
         )}

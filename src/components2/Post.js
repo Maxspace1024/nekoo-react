@@ -19,6 +19,8 @@ import axiox from '../axiox';
 import { useAuth } from '../context/AuthContext';
 import DanmakuPlayer from './DanmakuPlayer';
 import PostEditor from './PostEditor';
+import { useNavigate } from 'react-router-dom';
+import { S3HOST } from '../BaseConfig';
 
 
 const colors = [
@@ -27,7 +29,7 @@ const colors = [
   '#EEEE00', // yellow
   '#00EE00', // green
   // '#0000EE', // blue
-  '#steelblue', // blue
+  'steelblue', // blue
   '#4B0082', // indigo
   '#9400D3'  // violet
 ];
@@ -44,6 +46,7 @@ function rainbowTable(x) {
 
 
 function Post({item}) {
+  const navigate = useNavigate()
   const {auth, setAuth} = useAuth()
   const [items, setItems] = useState(null)
 
@@ -94,6 +97,14 @@ function Post({item}) {
 
   const handleCloseList = (e) => {
     setIsListOpen(false)
+  }
+
+  const linkToSignlePost = () => {
+    navigate(`/post/${item.postId}`)
+  }
+
+  const linkToUserProfile = () => {
+    navigate(`/neco/${item.userId}`)
   }
 
   const updatePrivacy = (p) => {
@@ -147,16 +158,22 @@ function Post({item}) {
     <Card style={{ marginBottom: '20px', width: '100%', boxShadow: '1px 1px 8px lightgray', userSelect: 'none' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
       <PostEditor item={item} open={isPostEditorOpen} onClose={() => {setIsPostEditorOpen(false)}}/>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          {item.userAvatarPath ? (
-            <Avatar size={56} src={item.userAvatarPath} />
-          ) : (
-            <Avatar size={56} icon={<UserOutlined />} />
-          )}
-          <div style={{ marginLeft: '10px' }}>
-            <strong style={{ fontSize: '24px' }}>{item.userName}</strong><br />
-            <span style={{ color: '#888' }}>{new Date(item.createAt).toLocaleString()}</span>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} >
+          <Tooltip title={'個人主頁'}>
+            <div onClick={linkToUserProfile}>
+                {item.userAvatarPath ? (
+                  <Avatar size={56} src={S3HOST+item.userAvatarPath} />
+                ) : (
+                  <Avatar size={56} icon={<UserOutlined />} />
+                )}
+            </div>
+          </Tooltip>
+          <Tooltip title={'貼文主頁'}>
+            <div style={{ marginLeft: '10px' }} onClick={linkToSignlePost}>
+              <strong style={{ fontSize: '24px' }} >{item.userName}</strong><br />
+              <span style={{ color: '#888' }}>{new Date(item.createAt).toLocaleString()}</span>
+            </div>
+          </Tooltip>
         </div>
 
         {/* 右上角統計數據和選單按鈕 */}
@@ -237,8 +254,8 @@ function Post({item}) {
           return (
             <div key={`asset-${asset.id}`} style={{ width: '100%', borderRadius: 8, display: 'flex', justifyContent: 'center', backgroundColor: 'white' }}>
               {/* <video controls width="100%" src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`} /> */}
-              {/* <VideoPlayer src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`} /> */}
-              <DanmakuPlayer src={`/BigBuckBunny.mp4`} />
+              <VideoPlayer src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`} />
+              {/* <DanmakuPlayer src={`/BigBuckBunny.mp4`} /> */}
             </div>
           )
         }

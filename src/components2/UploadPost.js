@@ -1,11 +1,9 @@
 import React, {useState, useEffect, useRef} from 'react';
-import { Button, Modal, Form, Avatar, Input, Upload, Tag, Spin, message} from 'antd';
-import { PlusOutlined , UploadOutlined, UserOutlined, InboxOutlined} from '@ant-design/icons';
+import { Button, Modal, Form, Avatar, Input, Upload, Tag, Spin, message, Tooltip} from 'antd';
+import { PlusOutlined , UploadOutlined, UserOutlined, InboxOutlined, LockOutlined, GlobalOutlined} from '@ant-design/icons';
 import axiox from '../axiox';
 import { useAuth } from '../context/AuthContext';
 import xtyle from './CommonStyle';
-
-const {Dragger} = Upload
 
 const UploadPost = () => {
   const {auth, setAuth} = useAuth()
@@ -14,6 +12,7 @@ const UploadPost = () => {
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState([]);
 
+  const [privacy, setPrivacy] = useState(0)
   const [tags, setTags] = useState([]);
   const [inputVisible, setInputVisible] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -33,23 +32,29 @@ const UploadPost = () => {
 
     formData.append("content", data.content)
     formData.append("hashtags", tags)
-    formData.append("privacy", 0)
-    data.upload.forEach((file) => {
-      formData.append('files', file.originFileObj);
-    });
-    
+    formData.append("privacy", privacy)
+    if (data.upload) {
+      data.upload.forEach((file) => {
+        formData.append('files', file.originFileObj);
+      });
+    }
     axiox.post("/api/v1/post", formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       }
     })
     .then(res => {
-      if (res.status == 200) {
+      const data = res.data
+      if (res.status == 200 && data.data) {
         setIsModalVisible(false);
+        message.success("上傳貼文成功")
+      } else {
+        message.success("上傳貼文失敗")
       }
     })
-    .catch(error => {
-      message.error(error.response ? error.response.data : error.message)
+    .catch(e => {
+      console.log(e)
+      message.error("上傳貼文失敗")
     })
   }
 
@@ -95,6 +100,10 @@ const UploadPost = () => {
     }
   };
 
+  const updatePrivacy = (x) => {
+    setPrivacy(x)
+  }
+
   const onFinish = (values) => {
     console.log('Submitted tags:', tags);
   };
@@ -118,16 +127,20 @@ const UploadPost = () => {
             name="content"
             rules={[{ required: true, message: '文字訊息' }]}
           >
-            <Input.TextArea placeholder='寫下什麼吧' style={{height: 240}}/>
+            <Input.TextArea 
+              placeholder='寫下什麼吧'
+              style={{...xtyle.hideScrollbar}} 
+              autoSize={{ minRows: 12, maxRows: 12 }}
+            />
           </Form.Item>
           <Form.Item label="標籤" name="tags">
-            <div style={{ border: '1px solid #d9d9d9', borderRadius: '2px', padding: '4px', minHeight: '32px', display: 'flex', justifyContent:'start', alignContent: 'center' }}>
+            <div style={{ border: '1px solid #d9d9d9', borderRadius: '2px', padding: '4px', minHeight: '32px', display: 'flex', justifyContent:'start', alignContent: 'center', flexWrap: 'wrap' ,wordBreak: 'break-word', overflowWrap: 'break-word',textWrap: 'wrap' }}>
               {tags.map((tag, index) => (
                 <Tag
                   key={tag}
                   closable
                   onClose={() => handleClose(tag)}
-                  style={{ marginBottom: '4px', fontSize: 16 }}
+                  style={{ marginBottom: '4px', fontSize: 16, display: 'flex', alignItems: 'center'}}
                 >
                   {tag}
                 </Tag>
@@ -153,6 +166,18 @@ const UploadPost = () => {
               )}
             </div>
           </Form.Item>
+          <Form.Item label="隱私">
+              { privacy === 0 &&
+                <Tooltip title={'隱私:公開'}>
+                  <Button type="text" icon={<GlobalOutlined style={{ fontSize: '24px' }} /> } onClick={() => {updatePrivacy(1)}}/>
+                </Tooltip>
+              }
+              { privacy === 1 &&
+                <Tooltip title={'隱私:朋友'}>
+                  <Button type="text" icon={<LockOutlined style={{ fontSize: '24px' }} /> } onClick={() => {updatePrivacy(0)}}/>
+                </Tooltip>
+              }
+            </Form.Item>
           <Form.Item
             name="upload"
             label="文件上傳"
@@ -181,7 +206,7 @@ const UploadPost = () => {
         onClick={showModal}
       >
         <div style={{width: 'auto'}}>
-          { auth ? (
+          { auth && auth.userAvatarPath ? (
               <Avatar size={48} src={auth.userAvatarPath} />
             ) : (
               <Avatar size={48} icon={<UserOutlined />} />

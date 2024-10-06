@@ -44,6 +44,20 @@ class StompClient {
     }
   }
 
+  disconnect(onDisconnectCallback) {
+    if (this.isConnected && this.stompClient) {
+      this.stompClient.disconnect(() => {
+        this.isConnected = false;
+        console.log('STOMP 客戶端已斷開連接');
+        if (onDisconnectCallback) {
+          onDisconnectCallback();
+        }
+      });
+    } else {
+      console.error('STOMP 客戶端尚未連接，無法斷開');
+    }
+  }
+
   // 發送訊息
   send(destination, headers, messageBody) {
     if (this.isConnected) {

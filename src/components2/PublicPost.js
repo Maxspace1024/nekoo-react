@@ -2,7 +2,7 @@ import React, {useState, useEffect, useRef} from 'react'
 import UploadPost from "./UploadPost"
 import xtyle from "./CommonStyle"
 import { useAuth } from "../context/AuthContext"
-import Post from '../components/Post'
+import Post from '../components2/Post'
 
 import stompClient from '../StompClient'
 import axiox from '../axiox'
@@ -23,6 +23,11 @@ function PublicPost() {
     stompClient.subscribe(`/topic/post/delete`, (msgPost) => {
       setPosts(prev => 
         prev.filter( p => p.postId !== msgPost.postId)
+      )
+    })
+    stompClient.subscribe(`/topic/post/update`, (msgPost) => {
+      setPosts(prev => 
+        prev.map( p => p.postId === msgPost.postId ? msgPost : p)
       )
     })
 
@@ -55,7 +60,7 @@ function PublicPost() {
 
   const handlePostScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = postScrollRef.current
-    if (scrollTop + clientHeight + 20 >= scrollHeight && postScrollLock == false) {
+    if (scrollTop + clientHeight + 20 >= scrollHeight && postScrollLock === false) {
       setPostScrollLock(true)
       setPostScrollPage(prev => prev + 1)
     }

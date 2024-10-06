@@ -6,6 +6,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { PostProvider } from './context/PostContext';
 import { ChatroomProvider } from './context/ChatroomContext';
+import { FriendshipProvider } from './context/FriendshipContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -15,7 +16,9 @@ root.render(
   <AuthProvider>
     <PostProvider>
       <ChatroomProvider>
-        <App />
+        <FriendshipProvider>
+          <App />
+        </FriendshipProvider>
       </ChatroomProvider>
     </PostProvider>
   </AuthProvider>

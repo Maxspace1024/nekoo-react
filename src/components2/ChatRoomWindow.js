@@ -123,8 +123,8 @@ function ChatRoomWindow({item, onClose}) {
       title={
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            { false ? (
-                <Avatar style={{marginRight: 8}}/>
+            { item.chatroomAvatarPath ? (
+                <Avatar style={{marginRight: 8}} src={item.chatroomAvatarPath}/>
               ) : (
                 <Avatar icon={<UserOutlined />} />
               )

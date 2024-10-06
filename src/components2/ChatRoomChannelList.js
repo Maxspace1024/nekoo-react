@@ -10,8 +10,8 @@ import { useAuth } from "../context/AuthContext"
 
 import stompClient from '../StompClient'
 import axiox from '../axiox'
-import ChatRoomModal from './ChatRoomModal';
 import ChatRoomWindow from './ChatRoomWindow';
+import { useChatroom } from '../context/ChatroomContext';
 
 const { Search } = Input;
 
@@ -25,8 +25,15 @@ function ChatRoomChannelList() {
   const [channelInfo, setChannelInfo] = useState(null)
   const [isChannelOpen, setIsChannelOpen] = useState(false)
 
-  const [channels, setChannels] = useState([])
-  const [newChannel, setNewChannel] = useState(null)
+  // const [channels, setChannels] = useState([])
+  // const [newChannel, setNewChannel] = useState(null)
+  const { 
+    channels, setChannels, 
+    unreadChannels, setUnreadChannels, 
+    chatLogs, setChatLogs, 
+    newChannel, setNewChannel, 
+    newChatLog, setNewChatLog 
+  } = useChatroom()
   const [filterText, setFilterText] = useState("")
 
 
@@ -34,8 +41,8 @@ function ChatRoomChannelList() {
     // 聊天室頻道
     stompClient.subscribe(`/topic/chatroom/new/${auth.userId}`, (msgChatroom) => {
       setChannels(prev => [msgChatroom, ...prev])
+      setNewChannel(msgChatroom)
     })
-
 
     return () => {
       stompClient.unsubscribe(`/topic/chatroom/new/${auth.userId}`)
@@ -53,21 +60,14 @@ function ChatRoomChannelList() {
         setChannels(page)
         for (const channel of page) {
           stompClient.subscribe(`/topic/chatroom/${channel.chatroomUuid}`, (msg) => {
-    
+            msg.sender = msg.userId === auth.userId ? 'self' : 'other'
+            setChatLogs(prev => [...prev, msg])
           })
         }
       }
     })
     .catch(e => console.error(e))
   }
-
-  // const handleChannelScroll = (e) => {
-  //   const { scrollTop, scrollHeight, clientHeight } = channelScrollRef.current
-  //   if (scrollTop + clientHeight + 20 >= scrollHeight && channelScrollLock == false) {
-  //     setChannelScrollLock(true)
-  //     setChannelScrollPage(prev => prev + 1)
-  //   }
-  // }
 
   useEffect(() => {
     fetchChannelPage()
@@ -84,7 +84,8 @@ function ChatRoomChannelList() {
   useEffect(() => {
     if (newChannel !== null) {
       stompClient.subscribe(`/topic/chatroom/${newChannel.chatroomUuid}`, (msg) => {
-    
+        msg.sender = msg.userId === auth.userId ? 'self' : 'other'
+        setChatLogs(prev => [...prev, msg])
       })
     }
   }, [newChannel])
@@ -123,14 +124,20 @@ function ChatRoomChannelList() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                {item.chatroomAvatarPath ? (
-                  <Avatar size={48} src={item.chatroomAvatarPath} />
-                ) : (
-                  <Avatar size={48} icon={<UserOutlined />} />
-                )}
+                <div>
+                  {item.chatroomAvatarPath ? (
+                    <Avatar size={48} src={item.chatroomAvatarPath} />
+                  ) : (
+                    <Avatar size={48} icon={<UserOutlined />} />
+                  )}
+                </div>
                 <div style={{ marginLeft: '10px' }}>
-                  <strong>{item.chatroomName}</strong>
-                  <div style={{ color: 'gray', fontSize: '12px' }}>{item.userName}:&nbsp;{item.lastContent.substring(0,8) + "..."}</div>
+                  <strong style={{ wordBreak: 'break-word', overflowWrap: 'break-word',textWrap: 'wrap'}}>
+                    {item.chatroomName}
+                  </strong>
+                  { item.lastContent && 
+                    <div style={{ color: 'gray', fontSize: '12px' }}>{item.lastUserName}:&nbsp;{item.lastContent.substring(0,8) + "..."}</div>
+                  }
                 </div>
               </div>
               {item.lastCreateAt && 
@@ -147,6 +154,7 @@ function ChatRoomChannelList() {
         <ChatRoomWindow 
           item={channelInfo}
           onClose={() => {
+            console.log(channelInfo)
             setIsChannelOpen(false)
             setChannelInfo(null)
           }}

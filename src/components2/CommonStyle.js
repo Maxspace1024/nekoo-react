@@ -35,7 +35,7 @@ const xtyle = {
     alignSelf: 'center'
   },
   menuSearch: { 
-    borderRadius: '20px', 
+    borderRadius: '32px', 
     overflow: 'hidden', 
     backgroundColor: 'rgba(255,255,255,0.1)',
     width: 240
@@ -66,7 +66,6 @@ const xtyle = {
     scrollbarWidth: 'none',
     msOverflowStyle: 'none'
   },
-
 
   // UploadPost
   uploadPostContent: {
@@ -103,6 +102,34 @@ const xtyle = {
     width: 300, 
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)' 
   },
+
+  // xearch
+  xearchPage: {
+    display: 'flex', 
+    justifyContent:'center', 
+    flexDirection: 'row', 
+    gap: 16, 
+    padding: 16, 
+    height: 'calc(100vh - 64px)'
+  },
+  xearchCol: {
+    display: 'flex', 
+    justifyContent:'start', 
+    flexDirection: 'column',
+    flex: 1 , 
+    gap: 8, 
+    padding: 8,
+    height: 'auto', 
+    overflowY: 'scroll',
+    padding: 8,
+  },
+  xearchTopLable: {
+    borderRadius: 8, 
+    backgroundColor: 'steelblue' ,
+    boxShadow: '1px 1px 8px lightgray', 
+    color: 'white', 
+    textAlign: 'center'
+  }
 }
 
 export default xtyle

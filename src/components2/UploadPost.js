@@ -65,6 +65,9 @@ const UploadPost = () => {
     setInputValue(false)
     setInputValue('')
     setFileList([])
+    form.setFieldsValue({
+      content: '',
+    });
   };
 
   // uploadFile

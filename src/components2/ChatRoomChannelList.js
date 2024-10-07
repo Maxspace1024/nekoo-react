@@ -26,8 +26,8 @@ function ChatRoomChannelList() {
   const [channelInfo, setChannelInfo] = useState(null)
   const [isChannelOpen, setIsChannelOpen] = useState(false)
 
-  // const [channels, setChannels] = useState([])
-  // const [newChannel, setNewChannel] = useState(null)
+  const [isChannelsInit, setIsChannelsInit] = useState(false)
+
   const { 
     channels, setChannels, 
     unreadChannels, setUnreadChannels, 
@@ -56,19 +56,40 @@ function ChatRoomChannelList() {
     .then(response => {
       const data = response.data
       const success = data.success
-      if (data.data != null) {      
+      if (success && data.data) {      
         const {page, totalPages} = data.data
         setChannels(page)
-        for (const channel of page) {
-          stompClient.subscribe(`/topic/chatroom/${channel.chatroomUuid}`, (msg) => {
-            msg.sender = msg.userId === auth.userId ? 'self' : 'other'
-            setChatLogs(prev => [...prev, msg])
-          })
-        }
+        setIsChannelsInit(true)
       }
     })
     .catch(e => console.error(e))
   }
+
+  useEffect(() => {
+    if (isChannelsInit === true) {  
+      for (const channel of channels) {
+        stompClient.subscribe(`/topic/chatroom/${channel.chatroomUuid}`, (msg) => {
+          // msg.chatlog
+          msg.sender = msg.userId === auth.userId ? 'self' : 'other'
+          setChatLogs(prev => [...prev, msg])
+          setChannels(prev => {
+            const index = prev.findIndex(item => item.chatroomId === msg.chatroomId);
+            if (index !== -1) {
+                prev[index].lastContent = msg.content;
+                prev[index].lastUserName = msg.userName;
+                prev[index].lastCreateAt = msg.createAt;
+                prev[index].lastUserId = msg.userId
+                prev[index].readState = 0; // unread
+                const temp = prev[index]
+                prev.splice(index, 1);
+                prev.unshift(temp)
+            }
+            return prev
+          })
+        })
+      }
+    }
+  }, [isChannelsInit])
 
   useEffect(() => {
     fetchChannelPage()
@@ -96,8 +117,6 @@ function ChatRoomChannelList() {
   }
 
 
-
-
   if (!isLoginValid) {
     return <></>
   }
@@ -118,16 +137,31 @@ function ChatRoomChannelList() {
           dataSource={channels.filter( c => c.chatroomName.includes(filterText) )}
           renderItem={item => (
             <List.Item 
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between', 
+                cursor: 'pointer',
+              }} 
               onClick={() => {
+                axiox.post("/api/v1/chat/seen",{chatroomId: item.chatroomId})
+                .then(response => {
+                  const data = response.data
+                  const success = data.success
+                  if (success && data.data) {      
+                    
+                  }
+                })
+                .catch(e => console.error(e))
+
                 setIsChannelOpen(true)
                 setChannelInfo(item)
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <div>
+              <div style={{ display: 'flex', alignItems: 'center', padding: 8 }}>
+                <div >
                   {item.chatroomAvatarPath ? (
-                    <Avatar size={48} src={S3HOST + item.chatroomAvatarPath} />
+                    <Avatar size={48} src={S3HOST + item.chatroomAvatarPath} style={{outline: `3px solid ${item.readState === 0 && item.lastUserId !== auth.userId ? 'orange' : 'white'}`}} />
                   ) : (
                     <Avatar size={48} icon={<UserOutlined />} />
                   )}

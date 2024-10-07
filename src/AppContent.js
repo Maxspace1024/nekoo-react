@@ -67,50 +67,49 @@ const MainPage = () => {
     if (auth !== null) {
       stompClient.connect({}, (frame) => {
         setIsWsConnected(true)
-        stompClient.subscribe(`/topic/friendship/notification/new/${auth.userId}`, (msgFriendship) => {
-          const isRecv = auth.userId === msgFriendship.receiverUserId
-          if (isRecv) {
-            if (msgFriendship.friendshipState === 0) {
-              notification.open({
-                message: "通知",
-                description: <><strong>{msgFriendship.senderUserName}</strong>{' 邀請你成為朋友'}</>,
-                style: { width: 320 }
-              })
-            } else if (msgFriendship.friendshipState === 1) {
-              notification.open({
-                message: "通知",
-                description: <>{'和 '}<strong>{msgFriendship.senderUserName}</strong>{' 已經成為朋友'}</>,
-                style: { width: 320 }
-              })  
-            }
-          } else {
-            if (msgFriendship.friendshipState === 1) {
-              notification.open({
-                message: "通知",
-                description: <>{'和 '}<strong>{msgFriendship.receiverUserName}</strong>{' 已經成為朋友'}</>,
-                style: { width: 320 }
-              })  
-            }
-          }
-          setFriendshipNotifications(prev => {
-            const index = prev.findIndex(item => item.friendshipId === msgFriendship.friendshipId);
-            if (index !== -1) {
-                prev[index] = msgFriendship;
-            } else {
-                prev.unshift(msgFriendship);
-            }
-            return prev
-          })
-        })
       })
-
-      return () => {
-        // stompClient.disconnect(() => {
-        //   setIsWsConnected(false)
-        // })
-      }
     }
   }, [auth])
+
+  useEffect(() => {
+    if (isWsConnected) {
+      stompClient.subscribe(`/topic/friendship/notification/new/${auth.userId}`, (msgFriendship) => {
+        const isRecv = auth.userId === msgFriendship.receiverUserId
+        if (isRecv) {
+          if (msgFriendship.friendshipState === 0) {
+            notification.open({
+              message: "通知",
+              description: <><strong>{msgFriendship.senderUserName}</strong>{' 邀請你成為朋友'}</>,
+              style: { width: 320 }
+            })
+          } else if (msgFriendship.friendshipState === 1) {
+            notification.open({
+              message: "通知",
+              description: <>{'和 '}<strong>{msgFriendship.senderUserName}</strong>{' 已經成為朋友'}</>,
+              style: { width: 320 }
+            })  
+          }
+        } else {
+          if (msgFriendship.friendshipState === 1) {
+            notification.open({
+              message: "通知",
+              description: <>{'和 '}<strong>{msgFriendship.receiverUserName}</strong>{' 已經成為朋友'}</>,
+              style: { width: 320 }
+            })  
+          }
+        }
+        setFriendshipNotifications(prev => {
+          const index = prev.findIndex(item => item.friendshipId === msgFriendship.friendshipId);
+          if (index !== -1) {
+              prev[index] = msgFriendship;
+          } else {
+              prev.unshift(msgFriendship);
+          }
+          return prev
+        })
+      })
+    }
+  }, [isWsConnected])
 
   useEffect(() => {
     axiox.post("/api/v1/friendship/searchNotification", {})

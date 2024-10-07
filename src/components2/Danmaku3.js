@@ -275,7 +275,7 @@ function Danmaku3({ asset, dmkVisible, listOpen, onCancel, onDmkCountChange }) {
       style={{ position: 'relative', boxShadow: '1px 1px 8px lightgray', borderRadius: 8}}
     >
       <Image
-        src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`}
+        src={`${S3HOST}${asset.path}`}
         alt="image"
         preview={false}
         style={{ borderRadius: 8, userSelect: 'none', WebkitUserDrag: 'none'}}

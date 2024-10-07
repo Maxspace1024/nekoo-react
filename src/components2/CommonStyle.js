@@ -129,6 +129,14 @@ const xtyle = {
     boxShadow: '1px 1px 8px lightgray', 
     color: 'white', 
     textAlign: 'center'
+  },
+
+  // profile
+  profileLabel : { 
+    fontSize: 20 
+  }, 
+  profileText : {
+    fontSize: 20 
   }
 }
 

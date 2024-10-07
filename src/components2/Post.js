@@ -161,11 +161,12 @@ function Post({item}) {
         <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} >
           <Tooltip title={'個人主頁'}>
             <div onClick={linkToUserProfile}>
-                {item.userAvatarPath ? (
-                  <Avatar size={56} src={S3HOST+item.userAvatarPath} />
+              { item.userAvatarPath ? (
+                  <Avatar size={56} src={S3HOST + item.userAvatarPath} />
                 ) : (
                   <Avatar size={56} icon={<UserOutlined />} />
-                )}
+                )
+              }
             </div>
           </Tooltip>
           <Tooltip title={'貼文主頁'}>
@@ -225,7 +226,8 @@ function Post({item}) {
         width: '100%', 
         wordBreak: 'break-word',    // 這行確保長單字會換行
         overflowWrap: 'break-word', // 這行是更好的兼容性確保
-        textWrap: 'wrap'
+        textWrap: 'wrap',
+        whiteSpace: 'pre-wrap'
       }}>
         {item.content}
       </p>
@@ -253,8 +255,7 @@ function Post({item}) {
           // video
           return (
             <div key={`asset-${asset.id}`} style={{ width: '100%', borderRadius: 8, display: 'flex', justifyContent: 'center', backgroundColor: 'white' }}>
-              {/* <video controls width="100%" src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`} /> */}
-              <VideoPlayer src={`https://nekoo-s3.s3.ap-northeast-1.amazonaws.com/${asset.path}`} />
+              <VideoPlayer src={`${S3HOST}${asset.path}`} />
               {/* <DanmakuPlayer src={`/BigBuckBunny.mp4`} /> */}
             </div>
           )

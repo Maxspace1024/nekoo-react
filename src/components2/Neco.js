@@ -3,12 +3,19 @@ import { Button, Modal, Form, Avatar, Input, Upload, Spin, Image, message} from 
 import { PlusOutlined , UploadOutlined, EditOutlined, UserOutlined, InboxOutlined, LockOutlined, GlobalOutlined} from '@ant-design/icons';
 import xtyle from "./CommonStyle"
 
+import Post from './Post';
+import CenterSpin from './CenterSpin';
+
 import axiox from '../axiox';
 import { useAuth } from '../context/AuthContext';
 import { useParams } from 'react-router-dom';
 import { S3HOST } from '../BaseConfig';
 
-function NecoEditor({open, onClose, onUpdateSuccess}) {
+const checkIsNotBlank = (x) => {
+  return !(x === null || "undefined" === x)
+}
+
+function NecoEditor({item, open, onClose, onUpdateSuccess}) {
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState([]);
 
@@ -62,6 +69,17 @@ function NecoEditor({open, onClose, onUpdateSuccess}) {
     setFileList(fileList);
   };
 
+  useEffect(() => {
+    if (open && item) {
+      form.setFieldsValue({
+        userName: checkIsNotBlank(item.userName) ? item.userName : '',
+        birthday: item.birthday ? new Date(item.birthday).toISOString().split("T")[0] : null,
+        gender: checkIsNotBlank(item.gender) ? item.gender : '',
+        location: checkIsNotBlank(item.location) ? item.location : '',
+        content: checkIsNotBlank(item.content) ? item.content : '',
+      });
+    }
+  }, [item, open, form]);
 
   return (
     <Modal
@@ -83,7 +101,8 @@ function NecoEditor({open, onClose, onUpdateSuccess}) {
             rules={[{ required: true, message: '必填' }]}
           >
             <Input
-              placeholder='編輯姓名'/>
+              placeholder='編輯姓名'
+            />
           </Form.Item>
           <Form.Item
             label="生日"
@@ -95,13 +114,17 @@ function NecoEditor({open, onClose, onUpdateSuccess}) {
             label="性別"
             name="gender"
           >
-            <Input placeholder='編輯性別' />
+            <Input 
+              placeholder='編輯性別' 
+            />
           </Form.Item>
           <Form.Item
             label="所在地"
             name="location"
           >
-            <Input placeholder='編輯所在地' />
+            <Input 
+              placeholder='編輯所在地'
+            />
           </Form.Item>
           <Form.Item label="簡介" name="content">
             <Input.TextArea 
@@ -138,14 +161,16 @@ function NecoEditor({open, onClose, onUpdateSuccess}) {
 }
 
 function Neco() {
-  const {auth, setAuth} = useAuth()
+  const {auth, setAuth, isLoginValid, isWsConnected, setIsWsConnected} = useAuth()
   const {userId} = useParams()
   const [isEditorOpen, setIsEditorOpen] = useState(false)
   const [profile, setProfile] = useState({})
 
-  const checkIsNotBlank = (x) => {
-    return !(x === null || "undefined" === x)
-  }
+  const [posts, setPosts] = useState([])
+  const [loadingPost, setLoadingPost] = useState(false)
+  const postScrollRef = useRef(null)
+  const [postScrollLock, setPostScrollLock] = useState(false)
+  const [postScrollPage, setPostScrollPage] = useState(0)
 
   const handleEditorOpen = () => {setIsEditorOpen(true)}
   const handleUpdateSuccess = (data) => {
@@ -183,10 +208,53 @@ function Neco() {
     })
   }, [profile])
 
+  const fetchPostPage = () => {
+    setLoadingPost(true)
+    axiox.post(`/api/v1/profilePostPage/${userId}`,
+      {
+        page: postScrollPage
+      }
+    ).then(response => {
+      const data = response.data
+      const success = data.success
+      if (data.data != null) {      
+        const {page, totalPages} = data.data
+        if (success && postScrollPage < totalPages) {
+          setPosts(prev => [...prev, ...page])
+        }
+        if (page.length !== 0) {
+          setPostScrollLock(false)
+        }
+      }
+    })
+    .catch(e => console.error(e))
+    .finally(() => {
+      setLoadingPost(false)
+    })
+  }
+
+  const handlePostScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = postScrollRef.current
+    if (scrollTop + clientHeight + 20 >= scrollHeight && postScrollLock === false) {
+      setPostScrollLock(true)
+      setPostScrollPage(prev => prev + 1)
+    }
+  }
+
+  // page 遞增
+  useEffect(() => {
+    fetchPostPage()
+  }, [postScrollPage])
+
+
+  if (!isLoginValid) {
+    return <></>
+  }
+
   return (
     <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'center', height: '100%'}}>
       <div 
-        // ref={postScrollRef} 
+        ref={postScrollRef} 
         style={{ 
           width: '100%', 
           maxWidth: '800px',
@@ -195,10 +263,12 @@ function Neco() {
           padding: '0px 16px',
           ...xtyle.hideScrollbar
         }}
-        // onScroll={handlePostScroll}
+        onScroll={handlePostScroll}
       >
+        {/* profile */}
         <div style={{
           marginTop: 16,
+          marginBottom: 16,
           display: 'flex', 
           justifyContent: 'start', 
           flexDirection: 'row', 
@@ -228,43 +298,50 @@ function Neco() {
               gap: '10px 20px', // 間隔設定
               alignItems: 'center' // 垂直居中對齊
             }}>
-              <div><strong style={{ fontSize: 16 }}>姓名：</strong></div><div>
-                { checkIsNotBlank(profile.userName) &&
-                  `${profile.userName}`
-                }
+              <div><strong style={xtyle.profileLabel}>姓名：</strong></div>
+                <div style={xtyle.profileText}>
+                  { checkIsNotBlank(profile.userName) &&
+                    `${profile.userName}`
+                  }
                 </div>              
-              <div><strong style={{ fontSize: 16 }}>生日：</strong></div><div>
-                { checkIsNotBlank(profile.birthday) ?
-                  `${new Date(profile.birthday).toLocaleDateString()}`
-                  : '無'
-                }
-              </div>
-              <div><strong style={{ fontSize: 16 }}>性別：</strong></div><div>
-                { checkIsNotBlank(profile.gender) ?
-                  `${profile.gender}`
-                  : '無'
-                }
-              </div>
-              <div><strong style={{ fontSize: 16 }}>所在地：</strong></div><div>
-                { checkIsNotBlank(profile.location) ?
-                  `${profile.locatioin}`
-                  : '無'
-                }
-              </div>
-              <div><strong style={{ fontSize: 16 }}>電子郵件：</strong></div><div>
-                { checkIsNotBlank(profile.email) ?
-                  `${profile.email}`
-                  : '無'
-                }
-              </div>
+              <div><strong style={xtyle.profileLabel}>生日：</strong></div>
+                <div style={xtyle.profileText}>
+                  { checkIsNotBlank(profile.birthday) ?
+                    `${new Date(profile.birthday).toLocaleDateString()}`
+                    : '無'
+                  }
+                </div>
+              <div><strong style={xtyle.profileLabel}>性別：</strong></div>
+                <div style={xtyle.profileText}>
+                  { checkIsNotBlank(profile.gender) ?
+                    `${profile.gender}`
+                    : '無'
+                  }
+                </div>
+              <div><strong style={xtyle.profileLabel}>所在地：</strong></div>
+                <div style={xtyle.profileText}>
+                  { checkIsNotBlank(profile.location) ?
+                    `${profile.locatioin}`
+                    : '無'
+                  }
+                </div>
+              <div><strong style={xtyle.profileLabel}>電子郵件：</strong></div>
+                <div style={xtyle.profileText}>
+                  { checkIsNotBlank(profile.email) ?
+                    `${profile.email}`
+                    : '無'
+                  }
+                </div>
             </div>
             <div style={{flex: 2}}>
               <p style={{wordBreak: 'break-word', overflowWrap: 'break-word',textWrap: 'wrap'}}>
-                <strong style={{fontSize: 16}}>簡介</strong><br/>
-                { checkIsNotBlank(profile.content) ?
-                  `${profile.content}` 
-                  : '無'
-                }
+                <strong style={xtyle.profileLabel}>簡介</strong>
+                <span style={{...xtyle.profileText, display: 'block'}}>
+                  { checkIsNotBlank(profile.content) ?
+                    `${profile.content}`
+                    : '無'
+                  }
+                </span>
               </p>
             </div>
           </div>
@@ -278,8 +355,23 @@ function Neco() {
             }
           </div>
         </div>
+
+        {/* post list */}
+        {posts.map(post => (
+          <Post key={`post-${post.postId}`} item={post}/>
+        ))}
+        { loadingPost && 
+          <CenterSpin />
+        }
       </div>
-      <NecoEditor open={isEditorOpen} onClose={() => setIsEditorOpen(false)} onUpdateSuccess={handleUpdateSuccess}/>
+      <NecoEditor 
+        item={profile} 
+        open={isEditorOpen} 
+        onClose={() => 
+          setIsEditorOpen(false)
+        }
+        onUpdateSuccess={handleUpdateSuccess}
+      />
     </div>
   )
 }

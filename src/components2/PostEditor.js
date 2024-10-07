@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import { Button, Modal, Form, Input, Upload, Tag, message} from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import axiox from '../axiox';
@@ -59,6 +59,9 @@ function PostEditor({item, open, onClose}) {
     onClose()
     setInputVisible(false)
     setFileList([])
+    form.setFieldsValue({
+      content: '',
+    });
   };
 
   // uploadFile
@@ -99,9 +102,17 @@ function PostEditor({item, open, onClose}) {
     }
   };
 
-  const onFinish = (values) => {
-    console.log('Submitted tags:', tags);
-  };
+  useEffect(() => {
+    if (open && item) {
+      form.setFieldsValue({
+        content: content,
+      });
+    }
+  }, [item, open, form]);
+
+  // const onFinish = (values) => {
+  //   console.log('Submitted tags:', tags);
+  // };
 
   return (
     <Modal

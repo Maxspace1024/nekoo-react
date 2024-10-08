@@ -12,15 +12,16 @@ import {
   BookOutlined,
   GlobalOutlined,
 } from '@ant-design/icons';
-import VideoPlayer from './VideoPlayer';
+import DanmakuPlayer from './DanmakuPlayer';
 import Danmaku3 from './Danmaku3';
 
 import axiox from '../axiox';
 import { useAuth } from '../context/AuthContext';
-import DanmakuPlayer from './DanmakuPlayer';
 import PostEditor from './PostEditor';
 import { useNavigate } from 'react-router-dom';
 import { S3HOST } from '../BaseConfig';
+import xtyle from './CommonStyle';
+import UserAvatar from './UserAvatar';
 
 
 const colors = [
@@ -99,6 +100,10 @@ function Post({item}) {
     setIsListOpen(false)
   }
 
+  const handleDmkCountChange = (x) => {
+    setLocalDmkCount(prev => prev + x)
+  }
+
   const linkToSignlePost = () => {
     navigate(`/post/${item.postId}`)
   }
@@ -125,12 +130,16 @@ function Post({item}) {
         if (res.status === 200 && data.data) {
           const p = data.data.privacy
           setPrivacy(p)
+          setLocalDmkCount(0)
           message.success("已修改貼文隱私權限")
         } else {
-
+          message.success("修改貼文隱私權限錯誤")
         }
       })
-      .catch(e => {console.error(e)})
+      .catch(e => {
+        console.error(e)
+        message.success("修改貼文隱私權限錯誤")
+      })
     }
   }
  
@@ -155,18 +164,13 @@ function Post({item}) {
   }, [setAuth])
 
   return (
-    <Card style={{ marginBottom: '20px', width: '100%', boxShadow: '1px 1px 8px lightgray', userSelect: 'none' }}>
+    <Card style={{ marginBottom: '20px', width: '100%', ...xtyle.cardStyle, userSelect: 'none' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
       <PostEditor item={item} open={isPostEditorOpen} onClose={() => {setIsPostEditorOpen(false)}}/>
         <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} >
           <Tooltip title={'個人主頁'}>
             <div onClick={linkToUserProfile}>
-              { item.userAvatarPath ? (
-                  <Avatar size={56} src={S3HOST + item.userAvatarPath} />
-                ) : (
-                  <Avatar size={56} icon={<UserOutlined />} />
-                )
-              }
+              <UserAvatar src={item.userAvatarPath} size={48} />
             </div>
           </Tooltip>
           <Tooltip title={'貼文主頁'}>
@@ -179,32 +183,31 @@ function Post({item}) {
 
         {/* 右上角統計數據和選單按鈕 */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <h2 style={{ marginRight: '20px', fontSize: '24px' }}>
-            <span style={{color: rainbowTable(item.totalDanmakuCount + localDmkCount)}}>{item.totalDanmakuCount + localDmkCount}</span>
-            {item.totalDanmakuCount + localDmkCount === 5 ? ' 條幕': ' 條彈幕'}
+          <h2 style={{ marginRight: '20px', cursor: 'pointer', ...xtyle.postToolbarIcon }}>
+            <Tooltip title={'清單閱覽模式'} onClick={handleOpenList}>
+              <span style={{color: rainbowTable(item.totalDanmakuCount + localDmkCount)}}>{item.totalDanmakuCount + localDmkCount}</span>
+              {item.totalDanmakuCount + localDmkCount === 5 ? ' 條幕': ' 條彈幕'}
+            </Tooltip>
           </h2>
           <div style={{display: 'flex', gap: 8}}>
             { privacy === 0 &&
               <Tooltip title={'隱私:公開'}>
-                <Button type="text" icon={<GlobalOutlined style={{ fontSize: '24px' }} /> } onClick={() => {updatePrivacy(1)}}/>
+                <Button type="text" icon={<GlobalOutlined style={xtyle.postToolbarIcon} /> } onClick={() => {updatePrivacy(1)}}/>
               </Tooltip>
             }
             { privacy === 1 &&
               <Tooltip title={'隱私:朋友'}>
-                <Button type="text" icon={<LockOutlined style={{ fontSize: '24px' }} /> } onClick={() => {updatePrivacy(0)}}/>
+                <Button type="text" icon={<LockOutlined style={xtyle.postToolbarIcon} /> } onClick={() => {updatePrivacy(0)}}/>
               </Tooltip>
             }
-            <Tooltip title={'清單閱覽模式'}>
-              <Button type="text" icon={<UnorderedListOutlined style={{ fontSize: '24px' }} /> } onClick={handleOpenList}/>
-            </Tooltip>
             {
               toggleDmkVisible ? 
               <Tooltip title={'彈幕開啟'}>
-                  <Button type="text" icon={<EyeOutlined style={{ fontSize: '24px' }} onClick={handleDmkVisble}/> } />
+                  <Button type="text" icon={<EyeOutlined style={xtyle.postToolbarIcon} onClick={handleDmkVisble}/> } />
                 </Tooltip>
               : 
               <Tooltip title={'彈幕關閉'}>
-                  <Button type="text" icon={<EyeInvisibleOutlined style={{ fontSize: '24px' }} onClick={handleDmkVisble}/> } />
+                  <Button type="text" icon={<EyeInvisibleOutlined style={xtyle.postToolbarIcon} onClick={handleDmkVisble}/> } />
                 </Tooltip>
             }
             <Dropdown
@@ -214,54 +217,71 @@ function Post({item}) {
               }}
               trigger={['click']}
               >
-              <Button type="text" icon={<EllipsisOutlined style={{ fontSize: '24px' }}/> } />
+              <Button type="text" icon={<EllipsisOutlined style={xtyle.postToolbarIcon}/> } />
             </Dropdown>
           </div>
         </div>
       </div>
 
       {/* 內文和tag */}
-      <p style={{ 
-        fontSize: 20, 
-        width: '100%', 
-        wordBreak: 'break-word',    // 這行確保長單字會換行
-        overflowWrap: 'break-word', // 這行是更好的兼容性確保
-        textWrap: 'wrap',
-        whiteSpace: 'pre-wrap'
-      }}>
-        {item.content}
-      </p>
-      <div style={{marginBottom: 12}}>
-        {item.hashtags.map(hashtag => 
-          <Button key={`hashtag-${item.assetId}-${hashtag}`} type={'link'} style={{padding: 4, fontSize: 16}}>#{hashtag}</Button>
-        )}
+      <div style={{padding: '0 8px'}}>
+        <p style={{ 
+          fontSize: 28, 
+          width: '100%', 
+          wordBreak: 'break-word',    // 這行確保長單字會換行
+          overflowWrap: 'break-word', // 這行是更好的兼容性確保
+          textWrap: 'wrap',
+          whiteSpace: 'pre-wrap'
+        }}>
+          {item.content}
+        </p>
+        <div style={{marginBottom: 12}}>
+          {item.hashtags.map(hashtag => 
+            <Button 
+              key={`hashtag-${item.assetId}-${hashtag}`}
+              type={'link'}
+              style={{padding: 4, fontSize: 20}}
+              onClick={() => {
+                navigate(`/search?q=${hashtag}&queryAt=${new Date()}`)
+              }}
+            >
+              #{hashtag}
+            </Button>
+          )}
+        </div>
       </div>
 
-      {item.assets.map((asset) => {
-        if (asset.type === 0) {
-          // image
-          return (
-            <div key={`asset-${asset.id}`} style={{ width: '100%', borderRadius: 8, display: 'flex', justifyContent: 'center', backgroundColor: 'white' }}>
-              <Danmaku3 
-                asset={asset} 
-                dmkVisible={toggleDmkVisible} 
-                listOpen={isListOpen} 
-                onCancel={handleCloseList}
-                onDmkCountChange={(x) => setLocalDmkCount(prev => prev + x)}
-              />
-            </div>
-          )
-        } else if (asset.type === 1 ) {
-          // video
-          return (
-            <div key={`asset-${asset.id}`} style={{ width: '100%', borderRadius: 8, display: 'flex', justifyContent: 'center', backgroundColor: 'white' }}>
-              <VideoPlayer src={`${S3HOST}${asset.path}`} />
-              {/* <DanmakuPlayer src={`/BigBuckBunny.mp4`} /> */}
-            </div>
-          )
-        }
+      {
+        item.assets.map((asset) => {
+          if (asset.type === 0) {
+            // image
+            return (
+              <div key={`asset-${asset.id}`} style={{ width: '100%', borderRadius: 8, display: 'flex', justifyContent: 'center', backgroundColor: 'white' }}>
+                <Danmaku3 
+                  asset={asset} 
+                  dmkVisible={toggleDmkVisible} 
+                  listOpen={isListOpen} 
+                  onCancel={handleCloseList}
+                  onDmkCountChange={handleDmkCountChange}
+                />
+              </div>
+            )
+          } else if (asset.type === 1 ) {
+            // video
+            return (
+              <div key={`asset-${asset.id}`} style={{ width: '100%', borderRadius: 8, display: 'flex', justifyContent: 'center', backgroundColor: 'white' }}>
+                <DanmakuPlayer 
+                  asset={asset} 
+                  dmkVisible={toggleDmkVisible} 
+                  listOpen={isListOpen} 
+                  onCancel={handleCloseList}
+                  onDmkCountChange={handleDmkCountChange}
+                />
+              </div>
+            )
+          }
+        })
       }
-      )}
     </Card>
   )
 }

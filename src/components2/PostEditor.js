@@ -141,13 +141,13 @@ function PostEditor({item, open, onClose}) {
           />
         </Form.Item>
         <Form.Item label="標籤" name="tags">
-          <div style={{ border: '1px solid #d9d9d9', borderRadius: '2px', padding: '4px', minHeight: '32px', display: 'flex', justifyContent:'start', alignContent: 'center' }}>
+          <div style={{ border: '1px solid #d9d9d9', borderRadius: '2px', padding: '4px', minHeight: '32px', display: 'flex', justifyContent:'start', alignContent: 'center', flexWrap: 'wrap' ,wordBreak: 'break-word', overflowWrap: 'break-word',textWrap: 'wrap' }}>
             {tags.map((tag, index) => (
               <Tag
                 key={tag}
                 closable
                 onClose={() => handleClose(tag)}
-                style={{ marginBottom: '4px', fontSize: 16 }}
+                style={{ marginBottom: '4px', fontSize: 16, display: 'flex', alignItems: 'center' }}
               >
                 {tag}
               </Tag>

@@ -5,6 +5,7 @@ import axiox from '../axiox';
 import { useAuth } from '../context/AuthContext';
 import xtyle from './CommonStyle';
 import { S3HOST } from '../BaseConfig';
+import UserAvatar from './UserAvatar';
 
 const UploadPost = () => {
   const {auth, setAuth} = useAuth()
@@ -154,7 +155,7 @@ const UploadPost = () => {
                   ref={inputRef}
                   type="text"
                   size="small"
-                  style={{ width: 78 }}
+                  style={{ width: 78, wordBreak: 'break-word', overflowWrap: 'break-word',textWrap: 'wrap' }}
                   value={inputValue}
                   onChange={handleInputChange}
                   onBlur={handleInputConfirm}
@@ -173,12 +174,12 @@ const UploadPost = () => {
           <Form.Item label="隱私">
               { privacy === 0 &&
                 <Tooltip title={'隱私:公開'}>
-                  <Button type="text" icon={<GlobalOutlined style={{ fontSize: '24px' }} /> } onClick={() => {updatePrivacy(1)}}/>
+                  <Button type="text" icon={<GlobalOutlined style={xtyle.postToolbarIcon} /> } onClick={() => {updatePrivacy(1)}}/>
                 </Tooltip>
               }
               { privacy === 1 &&
                 <Tooltip title={'隱私:朋友'}>
-                  <Button type="text" icon={<LockOutlined style={{ fontSize: '24px' }} /> } onClick={() => {updatePrivacy(0)}}/>
+                  <Button type="text" icon={<LockOutlined style={xtyle.postToolbarIcon} /> } onClick={() => {updatePrivacy(0)}}/>
                 </Tooltip>
               }
             </Form.Item>
@@ -210,12 +211,7 @@ const UploadPost = () => {
         onClick={showModal}
       >
         <div style={{width: 'auto'}}>
-          { auth && auth.userAvatarPath ? (
-              <Avatar size={48} src={S3HOST + auth.userAvatarPath} />
-            ) : (
-              <Avatar size={48} icon={<UserOutlined />} />
-            )
-          }
+          <UserAvatar src={auth.userAvatarPath} size={48} />
         </div>
         
         <div style={xtyle.uploadPostHintInput}>

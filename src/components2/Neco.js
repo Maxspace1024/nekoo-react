@@ -10,6 +10,7 @@ import axiox from '../axiox';
 import { useAuth } from '../context/AuthContext';
 import { useParams } from 'react-router-dom';
 import { S3HOST } from '../BaseConfig';
+import UserAvatar from './UserAvatar';
 
 const checkIsNotBlank = (x) => {
   return !(x === null || "undefined" === x)
@@ -191,13 +192,13 @@ function Neco() {
         console.log(e)
       })
     }
-  }, [setAuth])
+  }, [userId])
 
   useEffect(() => {
     axiox.post("/api/v1/user/auth")
     .then(rex => {
       const authInfo = rex.data.data
-      if (JSON.stringify(authInfo) !== "{}") {
+      if (JSON.stringify(authInfo) !== "{}" && authInfo) {
         setAuth(authInfo)
       } else {
 
@@ -217,13 +218,10 @@ function Neco() {
     ).then(response => {
       const data = response.data
       const success = data.success
-      if (data.data != null) {      
+      if (success && data.data) {      
         const {page, totalPages} = data.data
         if (success && postScrollPage < totalPages) {
           setPosts(prev => [...prev, ...page])
-        }
-        if (page.length !== 0) {
-          setPostScrollLock(false)
         }
       }
     })
@@ -271,20 +269,23 @@ function Neco() {
           marginBottom: 16,
           display: 'flex', 
           justifyContent: 'start', 
-          flexDirection: 'row', 
-          borderRadius: 8, 
+          flexDirection: 'row',
+          ...xtyle.cardStyle, 
           padding: 32,
           // backgroundColor: '#004469',
           // color: 'lightgray',
           backgroundColor: 'lightsteelblue',
-          boxShadow: '1px 1px 8px lightgray',
           position: 'relative'
         }}>          
-          {checkIsNotBlank(profile.avatarPath) ? (
+          {/* {checkIsNotBlank(profile.avatarPath) ? (
             <Avatar icon={<Image src={S3HOST + profile.avatarPath} />} size={256} style={{marginRight: 32, flexShrink: 0}}/>
           ) : (
             <Avatar icon={<UserOutlined />} size={256} style={{marginRight: 32, flexShrink: 0}}/>
           )}
+          {checkIsNotBlank(profile.avatarPath) && */}
+          <div style={{marginRight: 32, flexShrink: 0}}>
+            <UserAvatar src={profile.avatarPath} size={256} />
+          </div>
           <div style={{
             display: 'flex', 
             flexDirection: 'column', 

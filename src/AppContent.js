@@ -67,9 +67,27 @@ const MainPage = () => {
     if (auth !== null) {
       stompClient.connect({}, (frame) => {
         setIsWsConnected(true)
+      }, (e) => {
+        setTimeout(() => {
+          console.error(e)
+        }, 5000)
       })
     }
   }, [auth])
+
+  // useEffect(() => {
+  //   console.log('do connect')
+  //   stompClient.connect({}, (frame) => {
+  //     setIsWsConnected(true)
+  //   })
+    
+  //   return () => {
+  //     console.log('do disconnect')
+  //     stompClient.disconnect(() => {
+  //       setIsWsConnected(false)
+  //     })
+  //   }
+  // }, [navigate])
 
   useEffect(() => {
     if (isWsConnected) {

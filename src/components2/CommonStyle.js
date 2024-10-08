@@ -1,4 +1,12 @@
 const xtyle = {
+  wrapBreak: {
+    flexWrap: 'wrap', wordBreak: 'break-word', overflowWrap: 'break-word',textWrap: 'wrap'
+  },
+  cardStyle: {
+    borderRadius: 8,
+    boxShadow: '1px 1px 8px lightgray'
+  },
+
   // header
   header: { 
     display: 'flex', 
@@ -89,6 +97,11 @@ const xtyle = {
     borderRadius: 32,
     border: '1px solid cornflowerblue',
     width: '90%'
+  },
+
+  // post
+  postToolbarIcon: {
+    fontSize: 20
   },
 
   // login & signup

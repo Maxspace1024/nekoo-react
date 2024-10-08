@@ -7,6 +7,7 @@ import stompClient from '../StompClient';
 import { useAuth } from '../context/AuthContext';
 import { S3HOST } from '../BaseConfig';
 import { useNavigate } from 'react-router-dom';
+import UserAvatar from './UserAvatar';
 
 const DanmakuBubble = ({item}) => {
   const navigate = useNavigate()
@@ -82,11 +83,7 @@ const DanmakuBubble = ({item}) => {
           <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} >
             <Tooltip title={'個人主頁'}>
               <div onClick={linkToUserProfile}>
-                  {item.userAvatarPath ? (
-                    <Avatar size={56} src={S3HOST+item.userAvatarPath} />
-                  ) : (
-                    <Avatar size={56} icon={<UserOutlined />} />
-                  )}
+                <UserAvatar src={item.userAvatarPath} size={56} />
               </div>
             </Tooltip>
             <Tooltip title={'貼文主頁'}>
@@ -98,11 +95,7 @@ const DanmakuBubble = ({item}) => {
           </div>
           {/* <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
             <div>
-              {item.userAvatarPath ? (
-                <Avatar size={56} src={S3HOST + item.userAvatarPath} />
-              ) : (
-                <Avatar size={56} icon={<UserOutlined />} />
-              )}
+              <UserAvatar src={item.userAvatarPath} size={56} />
             </div>
             <div style={{ marginLeft: '10px' }}>
               <strong style={{ fontSize: '20px', wordBreak: 'break-word', overflowWrap: 'break-word',textWrap: 'wrap'}}>
@@ -124,7 +117,7 @@ const DanmakuBubble = ({item}) => {
 }
 
 function Danmaku3({ asset, dmkVisible, listOpen, onCancel, onDmkCountChange }) {
-  const {auth, setAuth} = useAuth()
+  const {auth, setAuth, isWsConnected} = useAuth()
 
   const [inputs, setInputs] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -146,7 +139,7 @@ function Danmaku3({ asset, dmkVisible, listOpen, onCancel, onDmkCountChange }) {
       stompClient.unsubscribe(`/topic/danmaku/${asset.id}`)
       stompClient.unsubscribe(`/topic/danmaku/delete/${asset.id}`)
     }
-  }, [stompClient.isConnected])
+  }, [isWsConnected])
 
   useEffect(() => {
     if (asset != null) {
@@ -327,11 +320,7 @@ function Danmaku3({ asset, dmkVisible, listOpen, onCancel, onDmkCountChange }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Tooltip title={new Date(item.createAt).toLocaleString()}>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
-                    {item.userAvatarPath ? (
-                      <Avatar size={56} src={S3HOST + item.userAvatarPath} />
-                    ) : (
-                      <Avatar size={56} icon={<UserOutlined />} />
-                    )}
+                    <UserAvatar src={item.userAvatarPath} size={56} />
                     <div style={{ marginLeft: '10px' }}>
                       <strong style={{ fontSize: '20px' }}>{item.userName}</strong><br />
                       <span style={{ color: '#888' }}>{new Date(item.createAt).toLocaleString('zh-TW', {hour12: true, hour: '2-digit', minute: '2-digit'})}</span>

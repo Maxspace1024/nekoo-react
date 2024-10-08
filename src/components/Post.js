@@ -81,11 +81,9 @@ function Post({item}) {
     <Card style={{ marginBottom: '20px', width: '100%', boxShadow: '1px 1px 8px lightgray', userSelect: 'none' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          {item.userAvatarPath ? (
-            <Avatar size={56} src={item.userAvatarPath} />
-          ) : (
-            <Avatar size={56} icon={<UserOutlined />} />
-          )}
+          { item.userAvatarPath &&
+            <UserAvatar src={item.userAvatarPath} size={52} />
+          }
           <div style={{ marginLeft: '10px' }}>
             <strong style={{ fontSize: '24px' }}>{item.userName}</strong><br />
             <span style={{ color: '#888' }}>{new Date(item.createAt).toLocaleString()}</span>

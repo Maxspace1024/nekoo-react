@@ -13,6 +13,7 @@ import axiox from '../axiox'
 import ChatRoomWindow from './ChatRoomWindow';
 import { useChatroom } from '../context/ChatroomContext';
 import { S3HOST } from '../BaseConfig';
+import UserAvatar from './UserAvatar';
 
 const { Search } = Input;
 
@@ -159,12 +160,8 @@ function ChatRoomChannelList() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', padding: 8 }}>
-                <div >
-                  {item.chatroomAvatarPath ? (
-                    <Avatar size={48} src={S3HOST + item.chatroomAvatarPath} style={{outline: `3px solid ${item.readState === 0 && item.lastUserId !== auth.userId ? 'orange' : 'white'}`}} />
-                  ) : (
-                    <Avatar size={48} icon={<UserOutlined />} />
-                  )}
+                <div>
+                  <UserAvatar src={item.chatroomAvatarPath} size={48} />
                 </div>
                 <div style={{ marginLeft: '10px' }}>
                   <strong style={{ wordBreak: 'break-word', overflowWrap: 'break-word',textWrap: 'wrap'}}>

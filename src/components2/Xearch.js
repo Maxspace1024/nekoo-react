@@ -51,7 +51,7 @@ function Xearch() {
         <List
           itemLayout="horizontal"
           dataSource={searchFriendships}
-          style={{backgroundColor: "white", padding: 8, borderRadius: 8}}
+          style={{backgroundColor: "white", padding: '0 24px', borderRadius: 8}}
           renderItem={item => (
             <UserFriend item={item} userId={auth.userId}/>
           )}

@@ -204,12 +204,8 @@ const UploadPost = () => {
         <div style={{
           width: 'auto'
         }}>
-          {
-            userAvatarPath != 'null' || userAvatarPath.trim() != "" ? (
-              <Avatar size={52} src={userAvatarPath} />
-            ) : (
-              <Avatar size={52} icon={<UserOutlined />} />
-            )
+          { userAvatarPath != 'null' || userAvatarPath.trim() != "" &&
+            <UserAvatar src={userAvatarPath} size={52} />
           }
         </div>
         

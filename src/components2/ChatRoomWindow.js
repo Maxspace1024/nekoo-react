@@ -7,6 +7,7 @@ import stompClient from '../StompClient';
 import { useChatroom } from '../context/ChatroomContext';
 import { useAuth } from '../context/AuthContext';
 import { S3HOST } from '../BaseConfig';
+import UserAvatar from './UserAvatar';
 
 const ChatBubble = ({item}) => {
   return (
@@ -14,30 +15,38 @@ const ChatBubble = ({item}) => {
         key={`chatLog-${item.chatLogId}`}
         style={{
           textAlign: item.sender === 'self' ? 'right' : 'left',
+          fontSize: 16,
           marginBottom: 8
         }}
       >
-        <div
-          style={{
-            display: 'inline-block',
-            maxWidth: '70%',
-            padding: 8,
-            borderRadius: 8,
-            backgroundColor: item.sender === 'self' ? '#1890ff' : '#f0f0f0',
-            color: item.sender === 'self' ? 'white' : 'black',
-            textAlign: 'left',
-            wordBreak: 'break-word',    // 這行確保長單字會換行
-            overflowWrap: 'break-word', // 這行是更好的兼容性確保
-            textWrap: 'wrap'
-          }}
-        >
-          <Tooltip title={new Date(item.createAt).toLocaleString('zh-TW', { hour12: false })}>
-            <div style={{ 
-              cursor: 'pointer' // 讓使用者知道此區域可以互動
-            }}>
-              {item.content}
+        <div>
+          { item.sender !== 'self' &&
+            <div style={{display: 'inline-block', margin: '0 4px'}}>
+              <UserAvatar src={item.userAvatarPath} size={40}/>
             </div>
-          </Tooltip>
+          }
+          <div
+            style={{
+              display: 'inline-block',
+              maxWidth: '70%',
+              padding: 8,
+              borderRadius: 8,
+              backgroundColor: item.sender === 'self' ? '#1890ff' : '#f0f0f0',
+              color: item.sender === 'self' ? 'white' : 'black',
+              textAlign: 'left',
+              wordBreak: 'break-word',    // 這行確保長單字會換行
+              overflowWrap: 'break-word', // 這行是更好的兼容性確保
+              textWrap: 'wrap'              
+            }}
+            >
+            <Tooltip title={new Date(item.createAt).toLocaleString('zh-TW', { hour12: false })}>
+              <div style={{ 
+                cursor: 'pointer' // 讓使用者知道此區域可以互動
+              }}>
+                {item.content}
+              </div>
+            </Tooltip>
+          </div>
         </div>
         <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>
           {new Date(item.createAt).toLocaleString('zh-TW', { hour12: true, hour: '2-digit', minute: '2-digit' })}
@@ -124,12 +133,7 @@ function ChatRoomWindow({item, onClose}) {
       title={
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            { item.chatroomAvatarPath ? (
-                <Avatar style={{marginRight: 8}} src={S3HOST + item.chatroomAvatarPath}/>
-              ) : (
-                <Avatar icon={<UserOutlined />} />
-              )
-            }
+            <UserAvatar src={item.chatroomAvatarPath} size={40} />
             <span style={{marginLeft: 8, fontSize: 20}}>{item.chatroomName}</span>
           </div>
           <Button 

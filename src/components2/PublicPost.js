@@ -37,6 +37,7 @@ function PublicPost() {
     return () => {
       stompClient.unsubscribe(`/topic/post/new`)
       stompClient.unsubscribe(`/topic/post/delete`)
+      stompClient.unsubscribe(`/topic/post/update`)
     }
   }, [isWsConnected])
 

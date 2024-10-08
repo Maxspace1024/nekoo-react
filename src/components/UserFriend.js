@@ -64,11 +64,9 @@ function UserFriend({item}) {
   return (
     <List.Item style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        {item.receiverUserAvatarPath ? (
-          <Avatar size={48} src={item.receiverUserAvatarPath} />
-        ) : (
-          <Avatar size={48} icon={<UserOutlined />} />
-        )}
+        {item.receiverUserAvatarPath &&
+          <UserAvatar src={item.receiverUserAvatarPath} size={48} />
+        }
         <div style={{ marginLeft: '10px' }}>
           <strong>{item.receiverUserName}</strong>
         </div>

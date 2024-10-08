@@ -8,8 +8,11 @@ import axiox from '../axiox';
 import { useFriendship } from '../context/FriendshipContext';
 import { useAuth } from '../context/AuthContext';
 import { S3HOST } from '../BaseConfig';
+import { useNavigate } from 'react-router-dom';
+import UserAvatar from './UserAvatar';
 
 function UserFriend({item, userId}) {
+  const navigate = useNavigate()
   const {auth, setAuth} = useAuth()
   const {friendshipNotifications, setFriendshipNotifications, searchFriendships, setSearchFriendships} = useFriendship()
 
@@ -106,17 +109,16 @@ function UserFriend({item, userId}) {
   }
 
   const isRecv = item.receiverUserId === userId
+  const userUserId = isRecv ? item.senderUserId : item.receiverUserId
   const userAvatarPath = isRecv ? item.senderUserAvatarPath : item.receiverUserAvatarPath 
   const userName = isRecv ? item.senderUserName : item.receiverUserName
 
   return (
     <List.Item style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        {userAvatarPath ? (
-          <Avatar size={48} src={ S3HOST + userAvatarPath} />
-        ) : (
-          <Avatar size={48} icon={<UserOutlined />} />
-        )}
+      <div style={{ display: 'flex', alignItems: 'center' }}
+        onClick={() => {navigate(`/neco/${userUserId}`)}}
+      >
+        <UserAvatar src={userAvatarPath} size={48} />
         <div style={{ marginLeft: '10px' }}>
           <strong>{userName}</strong>
         </div>

@@ -27,7 +27,7 @@ import UserAvatar from './UserAvatar';
 const colors = [
   '#EE0000', // red
   '#EE7F00', // orange
-  '#EEEE00', // yellow
+  '#FF9912', // yellow
   '#00EE00', // green
   // '#0000EE', // blue
   'steelblue', // blue

@@ -154,7 +154,7 @@ const DanmakuPlayer = ({asset, dmkVisible, listOpen, onCancel, onDmkCountChange 
     .then(res => {
       const data = res.data
       if (res.status && data.data) {
-        console.log(data.data)
+        // console.log(data.data)
         setDmks(data.data)
       }
     })

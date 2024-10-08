@@ -32,7 +32,7 @@ function NecoEditor({item, open, onClose, onUpdateSuccess}) {
     formData.append("content", data.content)
     formData.append("gender", data.gender)
     formData.append("userName", data.userName )
-    formData.append("location", data.locatioin)
+    formData.append("location", data.location)
     if (data.upload) {
       data.upload.forEach((file) => {
         formData.append('image', file.originFileObj);
@@ -165,7 +165,7 @@ function Neco() {
   const {auth, setAuth, isLoginValid, isWsConnected, setIsWsConnected} = useAuth()
   const {userId} = useParams()
   const [isEditorOpen, setIsEditorOpen] = useState(false)
-  const [profile, setProfile] = useState({})
+  const [profile, setProfile] = useState(null)
 
   const [posts, setPosts] = useState([])
   const [loadingPost, setLoadingPost] = useState(false)
@@ -264,98 +264,100 @@ function Neco() {
         onScroll={handlePostScroll}
       >
         {/* profile */}
-        <div style={{
-          marginTop: 16,
-          marginBottom: 16,
-          display: 'flex', 
-          justifyContent: 'start', 
-          flexDirection: 'row',
-          ...xtyle.cardStyle, 
-          padding: 32,
-          // backgroundColor: '#004469',
-          // color: 'lightgray',
-          backgroundColor: 'lightsteelblue',
-          position: 'relative'
-        }}>          
-          {/* {checkIsNotBlank(profile.avatarPath) ? (
-            <Avatar icon={<Image src={S3HOST + profile.avatarPath} />} size={256} style={{marginRight: 32, flexShrink: 0}}/>
-          ) : (
-            <Avatar icon={<UserOutlined />} size={256} style={{marginRight: 32, flexShrink: 0}}/>
-          )}
-          {checkIsNotBlank(profile.avatarPath) && */}
-          <div style={{marginRight: 32, flexShrink: 0}}>
-            <UserAvatar src={profile.avatarPath} size={256} />
-          </div>
+        { profile && 
           <div style={{
+            marginTop: 16,
+            marginBottom: 16,
             display: 'flex', 
-            flexDirection: 'column', 
-            justifyContent: 'space-between',
-            flexGrow: 1,
-          }}>
+            justifyContent: 'start', 
+            flexDirection: 'row',
+            ...xtyle.cardStyle, 
+            padding: 32,
+            // backgroundColor: '#004469',
+            // color: 'lightgray',
+            backgroundColor: 'lightsteelblue',
+            position: 'relative'
+          }}>          
+            {/* {checkIsNotBlank(profile.avatarPath) ? (
+              <Avatar icon={<Image src={S3HOST + profile.avatarPath} />} size={256} style={{marginRight: 32, flexShrink: 0}}/>
+            ) : (
+              <Avatar icon={<UserOutlined />} size={256} style={{marginRight: 32, flexShrink: 0}}/>
+            )}
+            {checkIsNotBlank(profile.avatarPath) && */}
+            <div style={{marginRight: 32, flexShrink: 0}}>
+              <UserAvatar src={profile.avatarPath} size={256} />
+            </div>
             <div style={{
-              flex: 3,
-              display: 'grid', 
-              gridTemplateColumns: '100px auto',  // 定義兩個欄位，左邊固定寬度，右邊自動適應
-              gap: '10px 20px', // 間隔設定
-              alignItems: 'center' // 垂直居中對齊
+              display: 'flex', 
+              flexDirection: 'column', 
+              justifyContent: 'space-between',
+              flexGrow: 1,
             }}>
-              <div><strong style={xtyle.profileLabel}>姓名：</strong></div>
-                <div style={xtyle.profileText}>
-                  { checkIsNotBlank(profile.userName) &&
-                    `${profile.userName}`
-                  }
-                </div>              
-              <div><strong style={xtyle.profileLabel}>生日：</strong></div>
-                <div style={xtyle.profileText}>
-                  { checkIsNotBlank(profile.birthday) ?
-                    `${new Date(profile.birthday).toLocaleDateString()}`
-                    : '無'
-                  }
-                </div>
-              <div><strong style={xtyle.profileLabel}>性別：</strong></div>
-                <div style={xtyle.profileText}>
-                  { checkIsNotBlank(profile.gender) ?
-                    `${profile.gender}`
-                    : '無'
-                  }
-                </div>
-              <div><strong style={xtyle.profileLabel}>所在地：</strong></div>
-                <div style={xtyle.profileText}>
-                  { checkIsNotBlank(profile.location) ?
-                    `${profile.locatioin}`
-                    : '無'
-                  }
-                </div>
-              <div><strong style={xtyle.profileLabel}>電子郵件：</strong></div>
-                <div style={xtyle.profileText}>
-                  { checkIsNotBlank(profile.email) ?
-                    `${profile.email}`
-                    : '無'
-                  }
-                </div>
+              <div style={{
+                flex: 3,
+                display: 'grid', 
+                gridTemplateColumns: '100px auto',  // 定義兩個欄位，左邊固定寬度，右邊自動適應
+                gap: '10px 20px', // 間隔設定
+                alignItems: 'center' // 垂直居中對齊
+              }}>
+                <div><strong style={xtyle.profileLabel}>姓名：</strong></div>
+                  <div style={xtyle.profileText}>
+                    { checkIsNotBlank(profile.userName) &&
+                      `${profile.userName}`
+                    }
+                  </div>              
+                <div><strong style={xtyle.profileLabel}>生日：</strong></div>
+                  <div style={xtyle.profileText}>
+                    { checkIsNotBlank(profile.birthday) ?
+                      `${new Date(profile.birthday).toLocaleDateString()}`
+                      : '無'
+                    }
+                  </div>
+                <div><strong style={xtyle.profileLabel}>性別：</strong></div>
+                  <div style={xtyle.profileText}>
+                    { checkIsNotBlank(profile.gender) ?
+                      `${profile.gender}`
+                      : '無'
+                    }
+                  </div>
+                <div><strong style={xtyle.profileLabel}>所在地：</strong></div>
+                  <div style={xtyle.profileText}>
+                    { checkIsNotBlank(profile.location) ?
+                      `${profile.location}`
+                      : '無'
+                    }
+                  </div>
+                <div><strong style={xtyle.profileLabel}>電子郵件：</strong></div>
+                  <div style={xtyle.profileText}>
+                    { checkIsNotBlank(profile.email) ?
+                      `${profile.email}`
+                      : '無'
+                    }
+                  </div>
+              </div>
+              <div style={{flex: 2}}>
+                <p style={{wordBreak: 'break-word', overflowWrap: 'break-word',textWrap: 'wrap'}}>
+                  <strong style={xtyle.profileLabel}>簡介</strong>
+                  <span style={{...xtyle.profileText, display: 'block'}}>
+                    { checkIsNotBlank(profile.content) ?
+                      `${profile.content}`
+                      : '無'
+                    }
+                  </span>
+                </p>
+              </div>
             </div>
-            <div style={{flex: 2}}>
-              <p style={{wordBreak: 'break-word', overflowWrap: 'break-word',textWrap: 'wrap'}}>
-                <strong style={xtyle.profileLabel}>簡介</strong>
-                <span style={{...xtyle.profileText, display: 'block'}}>
-                  { checkIsNotBlank(profile.content) ?
-                    `${profile.content}`
-                    : '無'
-                  }
-                </span>
-              </p>
+            <div style={{
+              position: 'absolute',
+              bottom: 4,
+              right: 4
+            }}>
+              { profile && auth.userId === profile.userId &&
+                <Button type='text' icon={<EditOutlined style={{ fontSize: '24px' }} onClick={handleEditorOpen}/>} />
+              }
             </div>
           </div>
-          <div style={{
-            position: 'absolute',
-            bottom: 12,
-            right: 12
-          }}>
-            { auth.userId === profile.userId &&
-              <Button type='text' icon={<EditOutlined style={{ fontSize: '32px'}} onClick={handleEditorOpen}/>} />
-            }
-          </div>
-        </div>
+        }
 
         {/* post list */}
         {posts.map(post => (

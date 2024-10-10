@@ -12,7 +12,6 @@ const DanmakuPlayer = ({asset, dmkVisible, listOpen, onCancel, onDmkCountChange 
   const videoRef = useRef(null);
   const [barrageList, setBarrageList] = useState([]); // 保存彈幕列表
   const [barrageText, setBarrageText] = useState(''); // 輸入的彈幕文字
-  const [seekLock, setSeekLock] = useState(false)
 
   const [dmks, setDmks] = useState([])
 
@@ -136,85 +135,50 @@ const DanmakuPlayer = ({asset, dmkVisible, listOpen, onCancel, onDmkCountChange 
     ]);
   }
 
-  // 撥放影片時處理彈幕顯示
-  useEffect(() => {
-    // const interval = setInterval(() => {
-    //   setBarrageList(prev => prev.map(barrage => ({
-    //     ...barrage,
-    //     left: barrage.left !== undefined ? barrage.left - 2 : window.innerWidth,
-    //   })));
-    // }, 50);
-    // const interval = setInterval(() => {
-    //   console.log(videoRef.current.currentTime)
-    // }, 50)
+  const [reqLogFlag, setReqLogFlag] = useState(false)
 
+  useEffect(() => {
     axiox.post('/api/v1/danmaku/log', {
-      assetId: asset.id
-    })
-    .then(res => {
-      const data = res.data
+        assetId: asset.id
+      })
+      .then(res => {
+        const data = res.data
       if (res.status && data.data) {
-        // console.log(data.data)
         setDmks(data.data)
+        setReqLogFlag(true)
       }
     })
     .catch(e => {
       console.error(e)
     })
+  }, [])
 
-    videoRef.current.addEventListener('play', () => {
-      console.log('play')
-    })
-    videoRef.current.addEventListener('playing', () => {
-      console.log('playing')
-    })
-    videoRef.current.addEventListener('pause', () => {
-      console.log('pause')
-    })
+  // 撥放影片時處理彈幕顯示
+  useEffect(() => {      
+    console.log('不錯喔')
+    if (dmks.length > 0) {
+      videoRef.current.addEventListener("playing", () => {
+        let dmkIndex = 0
+        let dmk = null
+        setInterval(() => {
+          try{
+            dmk = dmks[dmkIndex]
+            if (dmk && dmk.appearAt <= videoRef.current.currentTime) {
+              sendBarrage(dmk)
+              dmkIndex++
+            }
+          } catch(e) {
 
-    // videoRef.current.addEventListener('timeupdate', () => {
-    //   console.log('timeupdate')
-    // })
+          }
+        }, 50)
+      })
+    }
 
-    // const interval = setInterval(() => {
-    //   if (seekLock == false) {
-    //     let dmk;
-    //     do {
-    //       dmk = fakeDmks.shift()
-    //       if (!dmk) {
-    //         fakeDmks.unshift(dmk)
-    //         break
-    //       }
-    //       if (dmk.appearAt <= videoRef.current.currentTime) {
-    //         sendBarrage(dmk)
-    //       } else {
-    //         fakeDmks.unshift(dmk)
-    //         break
-    //       }
-    //     } while(dmk && dmk.appearAt <= videoRef.current.currentTime)
-    //     // console.log('timeupdate')
-    //   }
-    // }, 50)
+    // return () => {
+    //   videoRef.current.removeEventListener("playing", () => {})
+    // }
+  }, [dmks]);
 
-    videoRef.current.addEventListener('seeked', () => {
-      // setSeekLock(false)
-      console.log('seeked')
-    })
-    videoRef.current.addEventListener('seeking', () => {
-      setSeekLock(true)
-      console.log('seeking')
-    })
-    videoRef.current.addEventListener('ratechange', () => {
-      console.log('ratechange')
-    })
-    videoRef.current.addEventListener('durationchagne', () => {
-      console.log('durationchagne')
-    })
-    videoRef.current.addEventListener('volumnechange', () => {
-      console.log('volumnechange')
-    })
-    // return () => clearInterval(interval);
-  }, []);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -268,7 +232,7 @@ const DanmakuPlayer = ({asset, dmkVisible, listOpen, onCancel, onDmkCountChange 
           style={{ borderRadius: '0 0 0 8px' }}
           onClick={() => {}}
         >
-          設定彈幕樣式
+          設定樣式
         </Button>
         <Input
           value={barrageText}

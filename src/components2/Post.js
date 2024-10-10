@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { S3HOST } from '../BaseConfig';
 import xtyle from './CommonStyle';
 import UserAvatar from './UserAvatar';
+import Danmaku4 from './Danmaku4';
 
 
 const colors = [
@@ -142,7 +143,6 @@ function Post({item}) {
       })
     }
   }
- 
 
   useEffect(() => {
     if (auth != null || Object.keys(auth).length !== 0) {
@@ -164,7 +164,8 @@ function Post({item}) {
   }, [setAuth])
 
   return (
-    <Card style={{ marginBottom: '20px', width: '100%', ...xtyle.cardStyle, userSelect: 'none' }}>
+    <Card style={{ marginBottom: '20px', width: '100%', ...xtyle.cardStyle, userSelect: 'none' }}
+    >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
       <PostEditor item={item} open={isPostEditorOpen} onClose={() => {setIsPostEditorOpen(false)}}/>
         <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} >
@@ -242,7 +243,7 @@ function Post({item}) {
               type={'link'}
               style={{padding: 4, fontSize: 20}}
               onClick={() => {
-                navigate(`/search?q=${hashtag}&queryAt=${new Date()}`)
+                navigate(`/search?q=${hashtag}`)
               }}
             >
               #{hashtag}
@@ -257,7 +258,7 @@ function Post({item}) {
             // image
             return (
               <div key={`asset-${asset.id}`} style={{ width: '100%', borderRadius: 8, display: 'flex', justifyContent: 'center', backgroundColor: 'white' }}>
-                <Danmaku3 
+                <Danmaku4
                   asset={asset} 
                   dmkVisible={toggleDmkVisible} 
                   listOpen={isListOpen} 

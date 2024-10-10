@@ -111,6 +111,7 @@ function UserFriend({item, userId}) {
   const isRecv = item.receiverUserId === userId
   const userUserId = isRecv ? item.senderUserId : item.receiverUserId
   const userAvatarPath = isRecv ? item.senderUserAvatarPath : item.receiverUserAvatarPath 
+  const userEmail = isRecv ? item.senderUserEmail : item.receiverUserEmail
   const userName = isRecv ? item.senderUserName : item.receiverUserName
 
   return (
@@ -121,6 +122,7 @@ function UserFriend({item, userId}) {
         <UserAvatar src={userAvatarPath} size={48} />
         <div style={{ marginLeft: '10px' }}>
           <strong>{userName}</strong>
+          <div>{userEmail}</div>
         </div>
       </div>
       <div style={{ height: '72px', display:'flex', flexDirection: 'column', justifyContent: 'center', gap: 4}}>

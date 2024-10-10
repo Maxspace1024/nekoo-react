@@ -44,3 +44,85 @@
 //     "modifyAt":null
 //   }
 // ]
+
+
+useEffect(() => {
+    let playInterval = null;
+    let dmkIndex = 0;
+
+    const moveDmkFromBufferToDmkList = () => {
+      let dmk;
+      do {
+        try {
+          dmk = dmks[dmkIndex]
+        } catch(e) {
+          break
+        }
+        if (dmk && dmk.appearAt <= videoRef.current.currentTime) {
+          dmkIndex++
+          sendBarrage(dmk)
+        } else {
+          break
+        }
+      } while(dmk && dmk.appearAt <= videoRef.current.currentTime)
+    }
+
+    axiox.post('/api/v1/danmaku/log', {
+      assetId: asset.id
+    })
+    .then(res => {
+      const data = res.data
+      if (res.status && data.data) {
+        setDmks(data.data)
+      }
+    })
+    .catch(e => {
+      console.error(e)
+    })
+
+    videoRef.current.addEventListener('play', () => {
+      console.log('play')
+    })
+    videoRef.current.addEventListener('playing', () => {
+      if (playInterval === null) {
+        dmkIndex = 0;
+        for(const dmk of dmks) {
+          if (dmk.appearAt < videoRef.current.currentTime) {
+            dmkIndex++
+          } else {
+            break
+          }
+        }
+        playInterval = setInterval(moveDmkFromBufferToDmkList, 50)
+      }
+      console.log('playing')
+    })
+    videoRef.current.addEventListener('pause', () => {
+      console.log('pause')
+    })
+
+    // videoRef.current.addEventListener('timeupdate', () => {
+    //   console.log('timeupdate')
+    // })
+
+    videoRef.current.addEventListener('seeked', () => {
+      console.log('seeked')
+    })
+    videoRef.current.addEventListener('seeking', () => {
+      if (playInterval !== null) {
+        clearInterval(playInterval)
+        playInterval = null
+      }
+      console.log('seeking')
+    })
+    videoRef.current.addEventListener('ratechange', () => {
+      console.log('ratechange')
+    })
+    videoRef.current.addEventListener('durationchagne', () => {
+      console.log('durationchagne')
+    })
+    videoRef.current.addEventListener('volumnechange', () => {
+      console.log('volumnechange')
+    })
+    // return () => clearInterval(interval);
+  }, []);

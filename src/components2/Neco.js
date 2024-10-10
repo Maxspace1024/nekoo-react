@@ -250,18 +250,25 @@ function Neco() {
   }
 
   return (
-    <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'center', height: '100%'}}>
+    <div
+      ref={postScrollRef} 
+      style={{ 
+        flexGrow: 1, 
+        display: 'flex', 
+        justifyContent: 'center', 
+        height: '100%',
+        overflowY: 'scroll',
+        ...xtyle.hideScrollbar
+      }}
+      onScroll={handlePostScroll}
+    >
       <div 
-        ref={postScrollRef} 
         style={{ 
           width: '100%', 
           maxWidth: '800px',
           height: '100%', 
-          overflowY: 'scroll',
           padding: '0px 16px',
-          ...xtyle.hideScrollbar
         }}
-        onScroll={handlePostScroll}
       >
         {/* profile */}
         { profile && 
@@ -285,7 +292,7 @@ function Neco() {
             )}
             {checkIsNotBlank(profile.avatarPath) && */}
             <div style={{marginRight: 32, flexShrink: 0}}>
-              <UserAvatar src={profile.avatarPath} size={256} />
+              <UserAvatar src={profile.avatarPath} size={256} preview={true} />
             </div>
             <div style={{
               display: 'flex', 

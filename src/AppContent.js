@@ -18,6 +18,7 @@ import stompClient from './StompClient';
 import axiox from './axiox';
 import Neco from './components2/Neco';
 import SinglePost from './components2/SinglePost';
+import Xearch2 from './components2/Xearch2';
 
 
 const { Header, Content, Sider } = Layout;
@@ -29,8 +30,6 @@ const MainPage = () => {
   const {friendshipNotifications, setFriendshipNotifications} = useFriendship()
   const [collapsed, setCollapsed] = useState(false);
   const [loading, setLoading] = useState(true)
-
-
 
   const [api, contextHolder] = notification.useNotification();
 
@@ -145,8 +144,9 @@ const MainPage = () => {
   }, [])
 
   const onSearch = (value) => {
-    if (value) {
-      navigate(`/search?q=${encodeURI(value)}&queryAt=${new Date()}`)
+    if (value || value === "") {
+      value = value.replace('>', "").replace('<', "")
+      navigate(`/search?q=${encodeURIComponent(value)}`)
     }
   }
 
@@ -344,7 +344,8 @@ const MainPage = () => {
             <Content>
               <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/search" element={<Xearch />} />
+                {/* <Route path="/search" element={<Xearch />} /> */}
+                <Route path="/search" element={<Xearch2 />} />
                 <Route path="/publicPost" element={<PublicPost />} />
                 <Route path="/neco/:userId" element={<Neco />} />
                 <Route path="/post/:postId" element={<SinglePost />} />

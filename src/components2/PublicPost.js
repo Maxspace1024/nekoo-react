@@ -6,11 +6,13 @@ import Post from '../components2/Post'
 
 import stompClient from '../StompClient'
 import axiox from '../axiox'
-import { Spin } from 'antd'
+import { Space, Spin } from 'antd'
 import CenterSpin from './CenterSpin'
+import { usePost } from '../context/PostContext'
 
 function PublicPost() {
   const {auth, setAuth, isLoginValid, isWsConnected, setIsWsConnected} = useAuth()
+  const {postScrollTop, setPostScrollTop} = usePost()
   const [posts, setPosts] = useState([])
 
   const [loadingPost, setLoadingPost] = useState(false)
@@ -68,6 +70,7 @@ function PublicPost() {
 
   const handlePostScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = postScrollRef.current
+    setPostScrollTop(scrollTop)
     if (scrollTop + clientHeight + 20 >= scrollHeight && postScrollLock === false) {
       setPostScrollLock(true)
       setPostScrollPage(prev => prev + 1)
@@ -85,18 +88,25 @@ function PublicPost() {
     return <></>
   }
   return (
-    <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'center', height: '100%'}}>
-      <div 
-        ref={postScrollRef} 
-        style={{ 
+    <div 
+      ref={postScrollRef} 
+      style={{ 
+        flexGrow: 1, 
+        display: 'flex', 
+        justifyContent: 'center', 
+        height: '100%',
+        overflowY: 'scroll',
+      }}
+      onScroll={handlePostScroll}
+    >
+      <Space 
+        direction='vertical' 
+        style={{
           width: '100%', 
           maxWidth: '800px',
           height: '100%', 
-          overflowY: 'scroll',
           padding: '0px 16px',
-          ...xtyle.hideScrollbar
         }}
-        onScroll={handlePostScroll}
       >
         <UploadPost />
         {posts.map(post => (
@@ -105,7 +115,7 @@ function PublicPost() {
         { loadingPost && 
           <CenterSpin />
         }
-      </div>
+      </Space>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Layout, Avatar, List, Button, Input, AutoComplete, Card } from 'antd';
+import { Layout, Avatar, List, Button, Input, AutoComplete, Card, notification } from 'antd';
 import {
   UserOutlined,
   MinusOutlined,
@@ -71,7 +71,17 @@ function ChatRoomChannelList() {
       for (const channel of channels) {
         stompClient.subscribe(`/topic/chatroom/${channel.chatroomUuid}`, (msg) => {
           // msg.chatlog
-          msg.sender = msg.userId === auth.userId ? 'self' : 'other'
+          const isSelfMsg = msg.userId === auth.userId
+          msg.sender = isSelfMsg? 'self' : 'other'
+
+          if (isSelfMsg !== true) {
+            notification.open({
+              message: '新訊息',
+              description: <div><strong>{msg.userName}:</strong> {msg.content}</div>,
+              duration: 3
+            })
+          }
+
           setChatLogs(prev => [...prev, msg])
           setChannels(prev => {
             const index = prev.findIndex(item => item.chatroomId === msg.chatroomId);
@@ -156,11 +166,15 @@ function ChatRoomChannelList() {
                 .catch(e => console.error(e))
 
                 setIsChannelOpen(true)
-                setChannelInfo(item)
+                let newItem = item
+                if (item.readState === 0) { //unread
+                  newItem.readState = 1  //seen
+                } 
+                setChannelInfo(newItem)
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', padding: 8 }}>
-                <div>
+                <div style={{borderRadius: '50%', outline: `3px solid ${item.readState === 0 && isChannelOpen === false && item.lastUserId !== auth.userId ? 'orange' : 'transparent'}`}} >
                   <UserAvatar src={item.chatroomAvatarPath} size={48} />
                 </div>
                 <div style={{ marginLeft: '10px' }}>

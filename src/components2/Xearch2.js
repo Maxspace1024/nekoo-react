@@ -58,6 +58,9 @@ function PostTab({items, loading}) {
       { items.map(post => (
         <Post key={`post-${post.postId}`} item={post}/>
       ))}
+      { !loading && items.length === 0 &&
+        <h1 style={{textAlign: 'center'}}>未找到貼文</h1>
+      }
       { loading && 
         <CenterSpin />
       }
@@ -71,6 +74,9 @@ function TagTab({items, loading}) {
       { items.map(post => (
         <Post key={`post-${post.postId}`} item={post}/>
       ))}
+      { !loading && items.length === 0 &&
+        <h1 style={{textAlign: 'center'}}>未找到貼文</h1>
+      }
       { loading && 
         <CenterSpin />
       }
@@ -144,8 +150,8 @@ function Xearch2() {
         const data = res.data
         if (res.status === 200 && data.data) {
           const {page, totalPages} = data.data
-          setPosts(prev => [...prev, ...page])
           if (page.length > 0) {
+            setPosts(prev => [...prev, ...page])
             setScrollLock(false)
           }
         }
@@ -167,8 +173,8 @@ function Xearch2() {
         const data = res.data
         if (res.status === 200 && data.data) {
           const {page, totalPages} = data.data
-          setPosts(prev => [...prev, ...page])
           if (page.length > 0) {
+            setPosts(prev => [...prev, ...page])
             setScrollLock(false)
           }
         }

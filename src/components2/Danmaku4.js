@@ -10,6 +10,8 @@ import { useNavigate } from 'react-router-dom';
 import UserAvatar from './UserAvatar';
 import { usePost } from '../context/PostContext';
 
+import xtyle from './CommonStyle';
+
 const { Option } = Select;
 
 const calTextScale = (x) => {
@@ -18,7 +20,7 @@ const calTextScale = (x) => {
 
 const DanmakuBubble = ({item}) => {
   const navigate = useNavigate()
-  const {auth, setAuth} = useAuth()
+  const {auth, setAuth} = useAuth() 
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const handleClick = () => {
@@ -59,13 +61,13 @@ const DanmakuBubble = ({item}) => {
           left: `${item.posX}%`,
           top: `${item.posY}%`,
           fontWeight: 'bolder',
-          borderRadius: '20px',
+          borderRadius: '24px',
           padding: '8px 16px',
           border: 'none',
           boxShadow: '10px 5px 5px rgba(0, 0, 0, 0.2)',
           color: `${item.color}`,
           backgroundColor: `${item.backgroundColor}E6`,
-          transform: `scale(${calTextScale(item.size)})`,
+          fontSize: `${16 * calTextScale(item.size)}px`,
           minWidth: '20px',
           maxWidth: '300px',
           overflow: 'hidden',
@@ -344,7 +346,7 @@ function Danmaku4({ asset, dmkVisible, listOpen, onCancel, onDmkCountChange }) {
               boxShadow: '10px 5px 5px rgba(0, 0, 0, 0.2)',
               color: `${editorProp.color}`,
               backgroundColor: `${editorProp.backgroundColor}E6`,
-              transform: `scale(${calTextScale(editorProp.size)})`,
+              fontSize: `${16 * calTextScale(editorProp.size)}px`,
               fontSize: '16px',
               boxSizing: 'border-box',
               overflow: 'hidden',
@@ -364,25 +366,32 @@ function Danmaku4({ asset, dmkVisible, listOpen, onCancel, onDmkCountChange }) {
           {dmks.map(item => (
             <div key={`list-danmaku-${item.danmakuId}`} style={{margin: '24px 0px'}}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Tooltip title={new Date(item.createAt).toLocaleString()}>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <UserAvatar src={item.userAvatarPath} size={56} />
-                    <div style={{ marginLeft: '10px' }}>
-                      <strong style={{ fontSize: '20px' }}>{item.userName}</strong><br />
-                      <span style={{ color: '#888' }}>{new Date(item.createAt).toLocaleString('zh-TW', {hour12: true, hour: '2-digit', minute: '2-digit'})}</span>
+                <div style={{flex:3}}>
+                  <Tooltip title={new Date(item.createAt).toLocaleString()}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <UserAvatar src={item.userAvatarPath} size={56} />
+                      <div style={{ marginLeft: '10px' }}>
+                        <strong style={{ fontSize: '20px', ...xtyle.wrapBreak }}>{item.userName}</strong><br />
+                        <span style={{ color: '#888' }}>{new Date(item.createAt).toLocaleString('zh-TW', {hour12: true, hour: '2-digit', minute: '2-digit'})}</span>
+                      </div>
                     </div>
-                  </div>
-                </Tooltip>
-                <h3
-                  style={{
-                    textWrap: 'wrap',
-                    color: `${item.color}`,
-                    backgroundColor: `${item.backgroundColor}E6`,
-                    transform: `scale(${calTextScale(item.size)})`,
-                    padding: 8,
-                    borderRadius: 8
-                  }}
-                >{item.content}</h3>
+                  </Tooltip>
+                </div>
+                <div style={{flex:5, display: 'flex', justifyContent: 'end'}}>
+                  <span
+                    style={{
+                      textWrap: 'wrap',
+                      color: `${item.color}`,
+                      backgroundColor: `${item.backgroundColor}E6`,
+                      fontSize: `${16 * calTextScale(item.size)}px`,
+                      padding: 8,
+                      borderRadius: 8,
+                      ...xtyle.wrapBreak,
+                    }}
+                    >
+                    {item.content}
+                  </span>
+                </div>
               </div>
             </div>
           ))}

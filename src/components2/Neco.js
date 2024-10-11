@@ -220,8 +220,10 @@ function Neco() {
       const success = data.success
       if (success && data.data) {      
         const {page, totalPages} = data.data
+        console.log(`postScrollPage < totalPages ${postScrollPage} ${totalPages} ${postScrollPage < totalPages}`)
         if (success && postScrollPage < totalPages) {
           setPosts(prev => [...prev, ...page])
+          setPostScrollLock(false)
         }
       }
     })

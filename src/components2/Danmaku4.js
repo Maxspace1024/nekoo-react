@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useReducer, useRef } from 'react';
 import { Image, Input, Avatar, Modal, Tooltip, message, Button, Form, ColorPicker, Select, Space } from 'antd';
 import { DeleteOutlined, UserOutlined } from '@ant-design/icons';
+import DanmakuEditor from './DanmakuEditor';
 
 import axiox from '../axiox';
 import stompClient from '../StompClient';
@@ -11,8 +12,6 @@ import UserAvatar from './UserAvatar';
 import { usePost } from '../context/PostContext';
 
 import xtyle from './CommonStyle';
-
-const { Option } = Select;
 
 const calTextScale = (x) => {
   return 0.7 + x * 0.3
@@ -80,7 +79,7 @@ const DanmakuBubble = ({item}) => {
       </span>
 
       <Modal
-        title={<div style={{fontSize: 24}}>彈幕內容</div>}
+        title={<div style={{fontSize: 20}}>彈幕內容</div>}
         centered
         open={isModalVisible}
         onCancel={handleCancel}
@@ -106,73 +105,25 @@ const DanmakuBubble = ({item}) => {
             }
           </div>
         </div>
-        <h3>{item.content}</h3>
+        <div style={{flex:5, display: 'flex', marginTop: 12, justifyContent: 'start'}}>
+          <strong>
+            <span
+              style={{
+                textWrap: 'wrap',
+                color: `${item.color}`,
+                backgroundColor: `${item.backgroundColor}E6`,
+                fontSize: `${16 * calTextScale(item.size)}px`,
+                padding: '8px 12px',
+                borderRadius: 24,
+                ...xtyle.wrapBreak,
+              }}
+              >
+              {item.content}
+            </span>
+          </strong>
+        </div>
       </Modal>
     </div>
-  )
-}
-
-function DanmakuEditor({open, onClose, onSetProperties}) {
-  const [form] = Form.useForm();
-
-  const handleCancel = () => {
-    let props = form.getFieldsValue()
-    const color = props.color
-    const bgColor = props.backgroundColor
-    if (typeof(color) !== "string") {
-      props.color = color.metaColor.toHexString()
-    }
-    if (typeof(bgColor) !== "string") {
-      props.backgroundColor = bgColor.metaColor.toHexString()
-    }
-    onSetProperties(props)
-    onClose()
-  };
-
-  return (
-    <Modal
-        title="設定樣式"
-        footer={null}
-        centered
-        open={open}
-        onCancel={handleCancel}
-      >
-      <Form 
-        form={form}
-        layout="vertical" 
-        name="form_in_modal"
-        initialValues={{
-          color: '#000000', // 設定初始字體顏色
-          backgroundColor: '#FFFFFF', // 設定初始背景顏色
-          size: 1 // 設定初始字體大小
-        }}
-        >
-          <Space >
-            <Form.Item
-              label='字體顏色'
-              name="color"
-              >
-              <ColorPicker />
-            </Form.Item>
-            <Form.Item
-              label='背景顏色'
-              name="backgroundColor"
-              >
-              <ColorPicker/>
-            </Form.Item>
-            <Form.Item
-              label='字體大小'
-              name="size"
-              >
-              <Select>
-                <Option value={0}>小</Option>
-                <Option value={1}>中</Option>
-                <Option value={2}>大</Option>
-              </Select>
-            </Form.Item>
-          </Space>
-      </Form>
-    </Modal>
   )
 }
 
@@ -347,7 +298,6 @@ function Danmaku4({ asset, dmkVisible, listOpen, onCancel, onDmkCountChange }) {
               color: `${editorProp.color}`,
               backgroundColor: `${editorProp.backgroundColor}E6`,
               fontSize: `${16 * calTextScale(editorProp.size)}px`,
-              fontSize: '16px',
               boxSizing: 'border-box',
               overflow: 'hidden',
               outline: 'none',
@@ -357,40 +307,42 @@ function Danmaku4({ asset, dmkVisible, listOpen, onCancel, onDmkCountChange }) {
         }
       </div>
       <Modal
-        title={<div style={{fontSize: 24}}>彈幕清單</div>}
+        title={<div style={{fontSize: 20}}>彈幕清單</div>}
         footer={null}
         open={listOpen}
         onCancel={onCancel}
       >
-        <div style={{overflowY: 'auto', maxHeight: 600, padding: '0 16px'}}>
+        <div style={{overflowY: 'auto', maxHeight: 600, padding: '0 8px'}}>
           {dmks.map(item => (
             <div key={`list-danmaku-${item.danmakuId}`} style={{margin: '24px 0px'}}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{flex:3}}>
                   <Tooltip title={new Date(item.createAt).toLocaleString()}>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <UserAvatar src={item.userAvatarPath} size={56} />
+                      <UserAvatar src={item.userAvatarPath} size={48} />
                       <div style={{ marginLeft: '10px' }}>
-                        <strong style={{ fontSize: '20px', ...xtyle.wrapBreak }}>{item.userName}</strong><br />
+                        <strong style={{ fontSize: '16px', ...xtyle.wrapBreak }}>{item.userName}</strong><br />
                         <span style={{ color: '#888' }}>{new Date(item.createAt).toLocaleString('zh-TW', {hour12: true, hour: '2-digit', minute: '2-digit'})}</span>
                       </div>
                     </div>
                   </Tooltip>
                 </div>
-                <div style={{flex:5, display: 'flex', justifyContent: 'end'}}>
-                  <span
-                    style={{
-                      textWrap: 'wrap',
-                      color: `${item.color}`,
-                      backgroundColor: `${item.backgroundColor}E6`,
-                      fontSize: `${16 * calTextScale(item.size)}px`,
-                      padding: 8,
-                      borderRadius: 8,
-                      ...xtyle.wrapBreak,
-                    }}
-                    >
-                    {item.content}
-                  </span>
+                <div style={{flex:5, display: 'flex', marginTop: 12, justifyContent: 'end'}}>
+                  <strong>
+                    <span
+                      style={{
+                        textWrap: 'wrap',
+                        color: `${item.color}`,
+                        backgroundColor: `${item.backgroundColor}E6`,
+                        fontSize: `${16 * calTextScale(item.size)}px`,
+                        padding: '8px 12px',
+                        borderRadius: 24,
+                        ...xtyle.wrapBreak,
+                      }}
+                      >
+                      {item.content}
+                    </span>
+                  </strong>
                 </div>
               </div>
             </div>
@@ -398,7 +350,6 @@ function Danmaku4({ asset, dmkVisible, listOpen, onCancel, onDmkCountChange }) {
         </div>
       </Modal>
       <DanmakuEditor 
-        item={{}}
         open={isEditorOpen}
         onClose={() => setIsEditorOpen(false)}
         onSetProperties={(x) => {setEditorProp(x)}}

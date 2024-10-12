@@ -12,7 +12,6 @@ const Signup = ({onCancel}) => {
 	const handleSignup = (data) => {
     axiox.post("/api/v1/user/signup", data)
     .then(res => {
-      console.log(res)
       const data = res.data
       if (data.success) {
         message.success("註冊成功")

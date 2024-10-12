@@ -8,12 +8,8 @@ import {
   EllipsisOutlined, 
   EyeOutlined, 
   EyeInvisibleOutlined,
-  UnorderedListOutlined,
-  BookOutlined,
   GlobalOutlined,
 } from '@ant-design/icons';
-import DanmakuPlayer from './DanmakuPlayer';
-import Danmaku3 from './Danmaku3';
 
 import axiox from '../axiox';
 import { useAuth } from '../context/AuthContext';
@@ -23,6 +19,7 @@ import { S3HOST } from '../BaseConfig';
 import xtyle from './CommonStyle';
 import UserAvatar from './UserAvatar';
 import Danmaku4 from './Danmaku4';
+import DanmakuPlayer2 from './DanmakuPlayer2';
 
 
 const colors = [
@@ -271,7 +268,14 @@ function Post({item}) {
             // video
             return (
               <div key={`asset-${asset.id}`} style={{ width: '100%', borderRadius: 8, display: 'flex', justifyContent: 'center', backgroundColor: 'white' }}>
-                <DanmakuPlayer 
+                {/* <DanmakuPlayer 
+                  asset={asset} 
+                  dmkVisible={toggleDmkVisible} 
+                  listOpen={isListOpen} 
+                  onCancel={handleCloseList}
+                  onDmkCountChange={handleDmkCountChange}
+                /> */}
+                <DanmakuPlayer2
                   asset={asset} 
                   dmkVisible={toggleDmkVisible} 
                   listOpen={isListOpen} 

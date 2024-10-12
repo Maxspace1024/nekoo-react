@@ -20,12 +20,18 @@ const UploadPost = () => {
   const [inputValue, setInputValue] = useState('');
   const inputRef = useRef(null);
 
+  const [ulock, setUlock] = useState(false)
+
   // modal
   const showModal = () => {
     setIsModalVisible(true);
   };
 
   const handleOk = () => {
+    if (ulock === true) {
+      return
+    }
+    setUlock(true)
     form.submit()
   };
 
@@ -58,16 +64,28 @@ const UploadPost = () => {
       console.log(e)
       message.error("上傳貼文失敗")
     })
+    .finally(() => {
+      setUlock(false)
+      setTags([])
+      setInputVisible(false)
+      setInputValue('')
+      setFileList([])
+      form.setFieldsValue({
+        content: '',
+        upload: []
+      });
+    })
   }
 
   const handleCancel = () => {
     setIsModalVisible(false);
     setTags([])
-    setInputValue(false)
+    setInputVisible(false)
     setInputValue('')
     setFileList([])
     form.setFieldsValue({
       content: '',
+      upload: []
     });
   };
 
@@ -127,7 +145,7 @@ const UploadPost = () => {
           layout="vertical" 
           name="form_in_modal"
           onFinish={onFormFinish}
-          >
+        >
           <Form.Item
             name="content"
             rules={[{ required: true, message: '文字訊息' }]}

@@ -8,8 +8,11 @@ import { useChatroom } from '../context/ChatroomContext';
 import { useAuth } from '../context/AuthContext';
 import { S3HOST } from '../BaseConfig';
 import UserAvatar from './UserAvatar';
+import { useNavigate } from 'react-router-dom';
 
 const ChatBubble = ({item}) => {
+  const navigate = useNavigate()
+
   return (
       <div
         key={`chatLog-${item.chatLogId}`}
@@ -21,7 +24,11 @@ const ChatBubble = ({item}) => {
       >
         <div>
           { item.sender !== 'self' &&
-            <div style={{display: 'inline-block', margin: '0 4px'}}>
+            <div style={{display: 'inline-block', margin: '0 4px', cursor: 'pointer'}}
+              onClick={() => {
+                navigate(`/neco/${item.userId}`)
+              }}
+            >
               <UserAvatar src={item.userAvatarPath} size={40}/>
             </div>
           }
@@ -71,8 +78,12 @@ function ChatRoomWindow({item, onClose}) {
 
   const messageScrollRef = useRef()
 
+  const [ulock, setUlock] = useState(false)
+
   const handleSend = () => {
-    if (inputText.trim()) {
+    if (inputText.trim() && ulock === false) {
+      setUlock(true)
+
       const formData = new FormData()
       if ( "chatroomId" !== null )      formData.append("chatroomId", item.chatroomId)
       if ( "chatroomUuid" !== null )    formData.append("chatroomUuid", item.chatroomUuid)
@@ -87,7 +98,10 @@ function ChatRoomWindow({item, onClose}) {
         console.log(res)
       })
       .catch(e => {console.error(e)})
-      setInputText("");
+      .finally(() => {
+        setUlock(false)
+        setInputText("");
+      })
     }
   }
 

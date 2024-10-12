@@ -4,6 +4,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import axiox from '../axiox';
 import { useAuth } from '../context/AuthContext';
 import xtyle from './CommonStyle';
+import { upload } from '@testing-library/user-event/dist/upload';
 
 const {Dragger} = Upload
 
@@ -18,7 +19,13 @@ function PostEditor({item, open, onClose}) {
   const [inputValue, setInputValue] = useState(item.content);
   const inputRef = useRef(null);
 
+  const [ulock, setUlock] = useState(false)
+
   const handleOk = () => {
+    if (ulock === true) {
+      return
+    }
+    setUlock(true)
     form.submit()
   };
 
@@ -52,6 +59,13 @@ function PostEditor({item, open, onClose}) {
       console.log(e)
       message.error("編輯貼文失敗")
     })
+    .finally(() => {
+      setUlock(false)
+      setFileList([])
+      form.setFieldsValue({
+        upload: []
+      });
+    })
   }
 
   const handleCancel = () => {
@@ -61,6 +75,7 @@ function PostEditor({item, open, onClose}) {
     setFileList([])
     form.setFieldsValue({
       content: '',
+      upload: []
     });
   };
 

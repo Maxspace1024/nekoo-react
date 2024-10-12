@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { useParams } from 'react-router-dom';
 import { S3HOST } from '../BaseConfig';
 import UserAvatar from './UserAvatar';
+import { fetchBaseQuery } from '@reduxjs/toolkit/query';
 
 const checkIsNotBlank = (x) => {
   return !(x === null || "undefined" === x)
@@ -180,17 +181,22 @@ function Neco() {
 
   useEffect(() => {
     if (userId) {
+      setPostScrollPage(0)
+      setPostScrollLock(false)
+      setPosts([])
+
       axiox.get(`/api/v1/user/profile/${userId}`)
       .then(res => {
         const data = res.data
         if (res.status == 200 && data.data) {
           setProfile(data.data)
-        } else {
         }
       })
       .catch(e => {
         console.log(e)
       })
+
+      fetchPostPage(0)
     }
   }, [userId])
 
@@ -209,19 +215,18 @@ function Neco() {
     })
   }, [profile])
 
-  const fetchPostPage = () => {
+  const fetchPostPage = (pageNumber) => {
     setLoadingPost(true)
     axiox.post(`/api/v1/profilePostPage/${userId}`,
       {
-        page: postScrollPage
+        page: pageNumber
       }
     ).then(response => {
       const data = response.data
       const success = data.success
       if (success && data.data) {      
         const {page, totalPages} = data.data
-        console.log(`postScrollPage < totalPages ${postScrollPage} ${totalPages} ${postScrollPage < totalPages}`)
-        if (success && postScrollPage < totalPages) {
+        if (success && pageNumber < totalPages) {
           setPosts(prev => [...prev, ...page])
           setPostScrollLock(false)
         }
@@ -243,7 +248,9 @@ function Neco() {
 
   // page 遞增
   useEffect(() => {
-    fetchPostPage()
+    if (postScrollPage > 0) {
+      fetchPostPage(postScrollPage)
+    }
   }, [postScrollPage])
 
 

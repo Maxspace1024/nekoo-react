@@ -8,6 +8,7 @@ import { S3HOST } from '../BaseConfig';
 import UserAvatar from './UserAvatar';
 
 import stompClient from '../StompClient';
+import { useProgress } from '../context/ProgressContext';
 
 const UploadPost = () => {
   const {auth, setAuth, isWsConnected} = useAuth()
@@ -24,18 +25,8 @@ const UploadPost = () => {
 
   const [ulock, setUlock] = useState(false)
 
-  const [s3Progress, setS3Progress] = useState(0)
+  const {s3Progress, setS3Progress} = useProgress()
   const [ec2Progress, setEc2Progress] = useState(0)
-
-  useEffect(() => {
-    stompClient.subscribe(`/topic/post/progress/${auth.userId}`, (msgProgress) => {
-      setS3Progress(Math.round(msgProgress.progress))
-    })
-
-    return () => {
-      stompClient.unsubscribe(`/topic/post/progress/${auth.userId}`)
-    }
-  }, [isWsConnected])
 
   // modal
   const showModal = () => {
@@ -110,6 +101,8 @@ const UploadPost = () => {
       content: '',
       upload: []
     });
+    setEc2Progress(0)
+    setS3Progress(0)
   };
 
   // uploadFile
@@ -246,8 +239,8 @@ const UploadPost = () => {
               )}
             </Upload>
           </Form.Item>
-          {s3Progress > 0 && (
-            <Progress percent={ Math.round((ec2Progress + s3Progress) / 2)} />
+          {ec2Progress > 0 && (
+            <Progress percent={ec2Progress} />
           )}
         </Form>
       </Modal>

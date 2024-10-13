@@ -14,6 +14,7 @@ import UserAvatar from './UserAvatar';
 import { fetchBaseQuery } from '@reduxjs/toolkit/query';
 
 import stompClient from '../StompClient';
+import { useProgress } from '../context/ProgressContext';
 
 const checkIsNotBlank = (x) => {
   return !(x === null || "undefined" === x)
@@ -24,17 +25,8 @@ function NecoEditor({item, open, onClose, onUpdateSuccess}) {
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState([]);
 
-  const [s3Progress, setS3Progress] = useState(0)
-
-  useEffect(() => {
-    stompClient.subscribe(`/topic/post/progress/${auth.userId}`, (msgProgress) => {
-      setS3Progress(Math.round(msgProgress.progress))
-    })
-
-    return () => {
-      stompClient.unsubscribe(`/topic/post/progress/${auth.userId}`)
-    }
-  }, [isWsConnected])
+  const {s3Progress, setS3Progress} = useProgress()
+  const [ec2Progress, setEc2Progress] = useState(0)
 
   const handleOk = () => {
     form.submit()
@@ -58,7 +50,11 @@ function NecoEditor({item, open, onClose, onUpdateSuccess}) {
     axiox.post("/api/v1/user/profile", formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
-      }
+      },
+      onUploadProgress: (progressEvent) => {
+        const p = Math.round(progressEvent.progress * 100)
+        setEc2Progress(p)
+      },
     })
     .then(res => {
       const data = res.data
@@ -75,6 +71,7 @@ function NecoEditor({item, open, onClose, onUpdateSuccess}) {
       message.error("編輯資料失敗")
     })
     .finally(() => {
+      setEc2Progress(0)
       setS3Progress(0)
     })
   }
@@ -82,7 +79,8 @@ function NecoEditor({item, open, onClose, onUpdateSuccess}) {
   const handleCancel = () => {
     onClose()
     setFileList([])
-    setS3Progress(0)
+    setEc2Progress(0)
+      setS3Progress(0)
   };
 
   // uploadFile
@@ -176,8 +174,8 @@ function NecoEditor({item, open, onClose, onUpdateSuccess}) {
               )}
             </Upload>
           </Form.Item>
-          {s3Progress > 0 && (
-            <Progress percent={s3Progress} />
+          {ec2Progress > 0 && (
+            <Progress percent={ec2Progress} />
           )}
         </Form>
       </Modal>

@@ -20,6 +20,7 @@ import Neco from './components2/Neco';
 import SinglePost from './components2/SinglePost';
 import Xearch2 from './components2/Xearch2';
 import Home from './components2/Home';
+import { useProgress } from './context/ProgressContext';
 
 
 const { Header, Content, Sider } = Layout;
@@ -28,6 +29,7 @@ const { Search } = Input;
 const MainPage = () => {
   const navigate = useNavigate();
   const {auth, setAuth, isLoginValid, setIsLoginValid, isWsConnected, setIsWsConnected} = useAuth()
+  const {s3Progress, setS3Progress} = useProgress()
   const {friendshipNotifications, setFriendshipNotifications} = useFriendship()
   const [collapsed, setCollapsed] = useState(false);
   const [loading, setLoading] = useState(true)
@@ -91,6 +93,10 @@ const MainPage = () => {
 
   useEffect(() => {
     if (isWsConnected) {
+      stompClient.subscribe(`/topic/post/progress/${auth.userId}`, (msgProgress) => {
+        setS3Progress(Math.round(msgProgress.progress))
+      })
+
       stompClient.subscribe(`/topic/friendship/notification/new/${auth.userId}`, (msgFriendship) => {
         const isRecv = auth.userId === msgFriendship.receiverUserId
         if (isRecv) {

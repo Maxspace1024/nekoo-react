@@ -15,6 +15,12 @@ class StompClient {
     // 初始化 SockJS 和 Stomp
     this.socket = new SockJS(`${HOST}/ws`);
     this.stompClient = Stomp.over(this.socket);
+    // this.stompClient.debug = function(message) {
+    //   if (message.includes('ERROR') || message.includes('WARN')) {
+    //       console.log(message);
+    //   }
+    // };
+    // this.debugFlag = false
 
     // 預設為未連接狀態
     this.isConnected = false;
@@ -61,7 +67,7 @@ class StompClient {
   // 發送訊息
   send(destination, headers, messageBody) {
     if (this.isConnected) {
-      console.log(messageBody)
+      if (this.debugFlag) console.log(messageBody)
       this.stompClient.send(destination, headers, JSON.stringify(messageBody));
     } else {
       console.error('STOMP 客戶端尚未連接，無法發送訊息');
@@ -70,7 +76,7 @@ class StompClient {
 
   // 訂閱某個 topic
   subscribe(destination, callback) {
-    console.log(callback)
+    if (this.debugFlag) console.log(callback)
     if (this.isConnected) {
       return this.stompClient.subscribe(destination, (message) => {
         const body = JSON.parse(message.body);

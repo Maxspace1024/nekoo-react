@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useRef} from 'react';
-import { Button, Modal, Form, Avatar, Input, Upload, Tag, Spin, message, Tooltip} from 'antd';
+import { Button, Modal, Form, Avatar, Input, Upload, Tag, Spin, message, Tooltip, Progress} from 'antd';
 import { PlusOutlined , UploadOutlined, UserOutlined, InboxOutlined, LockOutlined, GlobalOutlined} from '@ant-design/icons';
 import axiox from '../axiox';
 import { useAuth } from '../context/AuthContext';
@@ -7,8 +7,10 @@ import xtyle from './CommonStyle';
 import { S3HOST } from '../BaseConfig';
 import UserAvatar from './UserAvatar';
 
+import stompClient from '../StompClient';
+
 const UploadPost = () => {
-  const {auth, setAuth} = useAuth()
+  const {auth, setAuth, isWsConnected} = useAuth()
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
@@ -21,6 +23,19 @@ const UploadPost = () => {
   const inputRef = useRef(null);
 
   const [ulock, setUlock] = useState(false)
+
+  const [s3Progress, setS3Progress] = useState(0)
+  const [ec2Progress, setEc2Progress] = useState(0)
+
+  useEffect(() => {
+    stompClient.subscribe("/topic/post/progress/123", (msgProgress) => {
+      setS3Progress(Math.round(msgProgress.progress))
+    })
+
+    return () => {
+      stompClient.unsubscribe("/topic/post/progress/123")
+    }
+  }, [isWsConnected])
 
   // modal
   const showModal = () => {
@@ -46,10 +61,15 @@ const UploadPost = () => {
         formData.append('files', file.originFileObj);
       });
     }
+
     axiox.post("/api/v1/post", formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
-      }
+      },
+      onUploadProgress: (progressEvent) => {
+        const p = Math.round(progressEvent.progress * 100)
+        setEc2Progress(p)
+      },
     })
     .then(res => {
       const data = res.data
@@ -74,6 +94,9 @@ const UploadPost = () => {
         content: '',
         upload: []
       });
+
+      setEc2Progress(0)
+      setS3Progress(0)
     })
   }
 
@@ -223,6 +246,9 @@ const UploadPost = () => {
               )}
             </Upload>
           </Form.Item>
+          {s3Progress > 0 && (
+            <Progress percent={ Math.round((ec2Progress + s3Progress) / 2)} />
+          )}
         </Form>
       </Modal>
       <div style={xtyle.uploadPostContent}

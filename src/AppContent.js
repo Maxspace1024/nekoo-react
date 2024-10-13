@@ -19,6 +19,7 @@ import axiox from './axiox';
 import Neco from './components2/Neco';
 import SinglePost from './components2/SinglePost';
 import Xearch2 from './components2/Xearch2';
+import Home from './components2/Home';
 
 
 const { Header, Content, Sider } = Layout;
@@ -344,7 +345,6 @@ const MainPage = () => {
             <Content>
               <Routes>
                 <Route path="/" element={<Home />} />
-                {/* <Route path="/search" element={<Xearch />} /> */}
                 <Route path="/search" element={<Xearch2 />} />
                 <Route path="/publicPost" element={<PublicPost />} />
                 <Route path="/neco/:userId" element={<Neco />} />
@@ -381,15 +381,5 @@ const AppContent = () => (
     <MainPage />
   </Router>
 );
-
-const Home = () => {
-  return (
-    <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 64px)'}}>
-      <div style={{alignSelf: 'center', padding: '16px 64px', backgroundColor: 'steelblue', borderRadius: 64, boxShadow: '1px 1px 8px gray'}}>
-        <span style={{fontSize: 256, fontWeight: 'bolder', color: 'white'}}>NEKOO</span>
-      </div>
-    </div>
-  )
-}
 
 export default AppContent;

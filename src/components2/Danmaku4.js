@@ -2,6 +2,7 @@ import React, { useState, useEffect, useReducer, useRef } from 'react';
 import { Image, Input, Avatar, Modal, Tooltip, message, Button, Form, ColorPicker, Select, Space } from 'antd';
 import { DeleteOutlined, UserOutlined } from '@ant-design/icons';
 import DanmakuEditor from './DanmakuEditor';
+import './Home.css'
 
 import axiox from '../axiox';
 import stompClient from '../StompClient';
@@ -72,6 +73,9 @@ const DanmakuBubble = ({item}) => {
           overflow: 'hidden',
           outline: 'none',
           userSelect: 'none',
+          transform: 'scale(0)',
+          animation: `bounce 1s ease-in-out forwards`,
+          animationDelay: `${0.1 + Math.random()* 1.5}s`
         }}
         onClick={handleClick}
       >

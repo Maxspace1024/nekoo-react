@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useRef} from 'react';
-import { Button, Modal, Form, Avatar, Input, Upload, Spin, Image, message} from 'antd';
+import { Button, Modal, Form, Avatar, Input, Upload, Spin, Image, message, Progress} from 'antd';
 import { PlusOutlined , UploadOutlined, EditOutlined, UserOutlined, InboxOutlined, LockOutlined, GlobalOutlined} from '@ant-design/icons';
 import xtyle from "./CommonStyle"
 
@@ -13,13 +13,28 @@ import { S3HOST } from '../BaseConfig';
 import UserAvatar from './UserAvatar';
 import { fetchBaseQuery } from '@reduxjs/toolkit/query';
 
+import stompClient from '../StompClient';
+
 const checkIsNotBlank = (x) => {
   return !(x === null || "undefined" === x)
 }
 
 function NecoEditor({item, open, onClose, onUpdateSuccess}) {
+  const {auth, isWsConnected} = useAuth()
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState([]);
+
+  const [s3Progress, setS3Progress] = useState(0)
+
+  useEffect(() => {
+    stompClient.subscribe(`/topic/post/progress/${auth.userId}`, (msgProgress) => {
+      setS3Progress(Math.round(msgProgress.progress))
+    })
+
+    return () => {
+      stompClient.unsubscribe(`/topic/post/progress/${auth.userId}`)
+    }
+  }, [isWsConnected])
 
   const handleOk = () => {
     form.submit()
@@ -59,11 +74,15 @@ function NecoEditor({item, open, onClose, onUpdateSuccess}) {
       console.log(e)
       message.error("編輯資料失敗")
     })
+    .finally(() => {
+      setS3Progress(0)
+    })
   }
 
   const handleCancel = () => {
     onClose()
     setFileList([])
+    setS3Progress(0)
   };
 
   // uploadFile
@@ -157,6 +176,9 @@ function NecoEditor({item, open, onClose, onUpdateSuccess}) {
               )}
             </Upload>
           </Form.Item>
+          {s3Progress > 0 && (
+            <Progress percent={s3Progress} />
+          )}
         </Form>
       </Modal>
   )
@@ -294,12 +316,6 @@ function Neco() {
             backgroundColor: 'lightsteelblue',
             position: 'relative'
           }}>          
-            {/* {checkIsNotBlank(profile.avatarPath) ? (
-              <Avatar icon={<Image src={S3HOST + profile.avatarPath} />} size={256} style={{marginRight: 32, flexShrink: 0}}/>
-            ) : (
-              <Avatar icon={<UserOutlined />} size={256} style={{marginRight: 32, flexShrink: 0}}/>
-            )}
-            {checkIsNotBlank(profile.avatarPath) && */}
             <div style={{marginRight: 32, flexShrink: 0}}>
               <UserAvatar src={profile.avatarPath} size={256} preview={true} />
             </div>

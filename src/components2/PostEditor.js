@@ -1,14 +1,16 @@
 import React, {useState, useRef, useEffect} from 'react';
-import { Button, Modal, Form, Input, Upload, Tag, message} from 'antd';
+import { Button, Modal, Form, Input, Upload, Tag, message, Progress} from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import axiox from '../axiox';
 import { useAuth } from '../context/AuthContext';
 import xtyle from './CommonStyle';
-import { upload } from '@testing-library/user-event/dist/upload';
+
+import stompClient from '../StompClient';
 
 const {Dragger} = Upload
 
 function PostEditor({item, open, onClose}) {
+  const {auth, setAuth, isWsConnected} = useAuth()
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState([]);
@@ -20,6 +22,18 @@ function PostEditor({item, open, onClose}) {
   const inputRef = useRef(null);
 
   const [ulock, setUlock] = useState(false)
+
+  const [s3Progress, setS3Progress] = useState(0)
+
+  useEffect(() => {
+    stompClient.subscribe(`/topic/post/progress/${auth.userId}`, (msgProgress) => {
+      setS3Progress(Math.round(msgProgress.progress))
+    })
+
+    return () => {
+      stompClient.unsubscribe(`/topic/post/progress/${auth.userId}`)
+    }
+  }, [isWsConnected])
 
   const handleOk = () => {
     if (ulock === true) {
@@ -65,6 +79,7 @@ function PostEditor({item, open, onClose}) {
       form.setFieldsValue({
         upload: []
       });
+      setS3Progress(0)
     })
   }
 
@@ -77,6 +92,7 @@ function PostEditor({item, open, onClose}) {
       content: '',
       upload: []
     });
+    setS3Progress(0)
   };
 
   // uploadFile
@@ -210,6 +226,9 @@ function PostEditor({item, open, onClose}) {
             )}
           </Upload>
         </Form.Item>
+        {s3Progress > 0 && (
+          <Progress percent={s3Progress} />
+        )}
       </Form>
     </Modal>
   )

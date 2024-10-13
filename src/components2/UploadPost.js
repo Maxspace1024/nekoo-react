@@ -28,12 +28,12 @@ const UploadPost = () => {
   const [ec2Progress, setEc2Progress] = useState(0)
 
   useEffect(() => {
-    stompClient.subscribe("/topic/post/progress/123", (msgProgress) => {
+    stompClient.subscribe(`/topic/post/progress/${auth.userId}`, (msgProgress) => {
       setS3Progress(Math.round(msgProgress.progress))
     })
 
     return () => {
-      stompClient.unsubscribe("/topic/post/progress/123")
+      stompClient.unsubscribe(`/topic/post/progress/${auth.userId}`)
     }
   }, [isWsConnected])
 

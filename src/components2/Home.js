@@ -2,6 +2,7 @@ import React, {useState} from "react"
 import { Carousel } from "antd";
 import carouselData from "./CarouselCats"
 import './Home.css'
+import { S3HOST } from "../BaseConfig";
 
 const Home = () => {
 
@@ -54,7 +55,7 @@ const Home = () => {
                 }}
               >
                 <img 
-                  src={`/assets/${image.id}.png`} 
+                  src={`${S3HOST}kat/${image.id}.png`} 
                   alt={`Cat ${index + 1}`} 
                   width={200} 
                   style={{

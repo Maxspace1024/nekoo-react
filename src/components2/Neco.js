@@ -188,6 +188,8 @@ function Neco() {
   const {userId} = useParams()
   const [isEditorOpen, setIsEditorOpen] = useState(false)
   const [profile, setProfile] = useState(null)
+  const [profileFriendship, setProfileFriendship] = useState(null)
+  const [isRecv, setIsRecv] = useState(false)
 
   const [posts, setPosts] = useState([])
   const [loadingPost, setLoadingPost] = useState(false)
@@ -198,15 +200,6 @@ function Neco() {
   const handleEditorOpen = () => {setIsEditorOpen(true)}
   const handleUpdateSuccess = (data) => {
     setProfile(data)
-  }
-
-  const {friendshipNotifications, setFriendshipNotifications, searchFriendships, setSearchFriendships} = useFriendship()
-
-  function updateSearchFriendships(msgFriendship) {
-    setSearchFriendships(prev => prev.map (f => 
-      f.receiverUserId === msgFriendship.receiverUserId ? msgFriendship
-      : f
-    ))
   }
 
   useEffect(() => {
@@ -283,6 +276,24 @@ function Neco() {
     }
   }, [postScrollPage])
 
+  useEffect(() => {
+    axiox.post("/api/v1/friendship/findFriendship",
+      {
+        receiverUserId: userId
+      }
+    ).then(res => {
+      const data = res.data
+      if (res.status === 200 && data.data) {
+        const pf = data.data
+        setProfileFriendship(pf)
+        setIsRecv(pf.receiverUserId === auth.userId)
+      }
+    })
+    .catch(e => {
+      console.error(e)
+    })
+  }, [])
+
 
   if (!isLoginValid) {
     return <></>
@@ -291,87 +302,95 @@ function Neco() {
 
   function handleInvite() {
     console.log("邀請")
-    // axiox.post("/api/v1/friendship/invite",
-    //   {
-    //     senderUserId: auth.userId,
-    //     receiverUserId: item.receiverUserId
-    //   }
-    // ).then(res => {
-    //   const data = res.data
-    //   if (res.status === 200 && data.data) {
-    //     message.success("已送出邀請")
-    //     updateSearchFriendships(data.data)
-    //   } else {
-    //     message.success("送出邀請錯誤")
-    //   }
-    // })
-    // .catch(e => {
-    //   console.error(e)
-    //   message.success("送出邀請錯誤")
-    // })
+    axiox.post("/api/v1/friendship/invite",
+      {
+        senderUserId: auth.userId,          //登入的帳號
+        receiverUserId: userId              //查看的profile userId
+      }
+    ).then(res => {
+      const data = res.data
+      if (res.status === 200 && data.data) {
+        message.success("已送出邀請")
+        const pf = data.data
+        setProfileFriendship(pf)
+        setIsRecv(pf.receiverUserId === auth.userId)
+      } else {
+        message.success("送出邀請錯誤")
+      }
+    })
+    .catch(e => {
+      console.error(e)
+      message.success("送出邀請錯誤")
+    })
   }
 
   function handleApprove() {
     console.log("接受")
-    // axiox.post("/api/v1/friendship/approve",
-    //   {
-    //     friendshipId: item.friendshipId,
-    //   }
-    // ).then(res => {
-    //   const data = res.data
-    //   if (res.status === 200 && data.data) {
-    //     message.success("已接受邀請")
-    //     updateSearchFriendships(data.data)
-    //   } else {
-    //     message.success("接受邀請錯誤")
-    //   }
-    // })
-    // .catch(e => {
-    //   console.error(e)
-    //   message.success("接受邀請錯誤")
-    // })
+    axiox.post("/api/v1/friendship/approve",
+      {
+        friendshipId: profileFriendship.friendshipId,
+      }
+    ).then(res => {
+      const data = res.data
+      if (res.status === 200 && data.data) {
+        message.success("已接受邀請")
+        const pf = data.data
+        setProfileFriendship(pf)
+        setIsRecv(pf.receiverUserId === auth.userId)
+      } else {
+        message.success("接受邀請錯誤")
+      }
+    })
+    .catch(e => {
+      console.error(e)
+      message.success("接受邀請錯誤")
+    })
   }
 
   function handleReject() {
     console.log("拒絕")
-    // axiox.post("/api/v1/friendship/reject",
-    //   {
-    //     friendshipId: item.friendshipId,
-    //   }
-    // ).then(res => {
-    //   const data = res.data
-    //   if (res.status === 200 && data.data) {
-    //     message.success("已拒絕邀請")
-    //     updateSearchFriendships(data.data)
-    //   } else {
-    //     message.success("拒絕邀請錯誤")
-    //   }
-    // })
-    // .catch(e => {
-    //   console.error(e)
-    //   message.success("拒絕邀請錯誤")
-    // })
+    axiox.post("/api/v1/friendship/reject",
+      {
+        friendshipId: profileFriendship.friendshipId,
+      }
+    ).then(res => {
+      const data = res.data
+      if (res.status === 200 && data.data) {
+        message.success("已拒絕邀請")
+        const pf = data.data
+        setProfileFriendship(pf)
+        setIsRecv(pf.receiverUserId === auth.userId)
+      } else {
+        message.success("拒絕邀請錯誤")
+      }
+    })
+    .catch(e => {
+      console.error(e)
+      message.success("拒絕邀請錯誤")
+    })
   }
 
   function handleReinvite() {
     console.log("重送邀請")
-    // axiox.post("/api/v1/friendship/pending",
-    //   {
-    //     friendshipId: item.friendshipId,
-    //   }
-    // ).then(res => {
-    //   const data = res.data
-    //   if (res.status === 200 && data.data) {
-    //     message.success("已重送邀請")
-    //     updateSearchFriendships(data.data)
-    //   } else {
-    //     message.success("重送邀請錯誤")
-    //   }
-    // })
-    // .catch(e => {
-    //   console.error(e)
-    //   message.success("重送邀請錯誤")
-    // })
+    axiox.post("/api/v1/friendship/pending",
+      {
+        friendshipId: profileFriendship.friendshipId,
+      }
+    ).then(res => {
+      const data = res.data
+      if (res.status === 200 && data.data) {
+        message.success("已重送邀請")
+        const pf = data.data
+        setProfileFriendship(pf)
+        setIsRecv(pf.receiverUserId === auth.userId)
+      } else {
+        message.success("重送邀請錯誤")
+      }
+    })
+    .catch(e => {
+      console.error(e)
+      message.success("重送邀請錯誤")
+    })
   }
 
   // const isRecv = item.receiverUserId === userId
@@ -432,73 +451,76 @@ function Neco() {
                 gap: '10px 20px', // 間隔設定
                 alignItems: 'center' // 垂直居中對齊
               }}>
+                {/* 姓名 */}
                 <div><strong style={xtyle.profileLabel}>姓名：</strong></div>
-                  <div style={xtyle.profileText}>
-                    { checkIsNotBlank(profile.userName) &&
-                      `${profile.userName}`
-                    }
-                  </div>
-                <div><strong style={xtyle.profileLabel}>好友狀態：</strong></div>
-                  { false &&
-                    <Space>
-                    {/* { item.friendshipState === 0 && !isRecv &&  // pending sender */}
-                    {  // pending sender
+                <div style={xtyle.profileText}>
+                  { checkIsNotBlank(profile.userName) &&
+                    `${profile.userName}`
+                  }
+                </div>
+                {/* 好友狀態 */}
+                { profileFriendship && auth.userId != userId &&
+                  <div><strong style={xtyle.profileLabel}>好友狀態：</strong></div>
+                }
+                { profileFriendship && auth.userId != userId &&
+                  <Space>
+                    { profileFriendship.friendshipState === 0 && !isRecv &&  // pending sender
                       <Button color='solid' variant='outlined'>已送出邀請</Button>
                     }
-                    {/* { item.friendshipState === 0 && isRecv && // pending receiver */}
-                    { // pending receiver
+                    { profileFriendship.friendshipState === 0 && isRecv && // pending receiver
                       <Button color='primary' variant='outlined' onClick={handleApprove}>接受</Button>
                     }
-                    {/* { item.friendshipState === 0 && isRecv && // pending receiver */}
-                    { // pending receiver
+                    { profileFriendship.friendshipState === 0 && isRecv && // pending receiver
                       <Button color='danger' variant='solid' onClick={handleReject}>拒絕</Button>
                     }
-                    {/* { item.friendshipState === 1 && // approved */}
-                    { // approved
+                    { profileFriendship.friendshipState === 1 && // approved
                       <Button color='solid' variant='outlined'>朋友</Button>
                     }
-                    {/* { item.friendshipState === 2 && !isRecv &&// rejected sender */}
-                    { // rejected sender
+                    { profileFriendship.friendshipState === 2 && !isRecv &&// rejected sender
                       <Button color='primary' variant='outlined' onClick={handleReinvite}>重新邀請</Button>
                     }
-                    {/* { item.friendshipState === 2 && isRecv &&// rejected sender */}
-                    { // rejected sender
+                    { profileFriendship.friendshipState === 2 && isRecv &&// rejected sender
                       <Button color='solid' variant='outlined'>拒絕此邀請</Button>
                     }
-                    {/* { item.friendshipState === 3 && // none */}
-                    { // none
+                    { profileFriendship.friendshipState === 3 && // none
                       <Button color='primary' variant='outlined' onClick={handleInvite}>邀請</Button>
                     }
-                  </Space> }             
+                  </Space>   
+                }
+                {/* 生日 */}
                 <div><strong style={xtyle.profileLabel}>生日：</strong></div>
-                  <div style={xtyle.profileText}>
-                    { checkIsNotBlank(profile.birthday) ?
-                      `${new Date(profile.birthday).toLocaleDateString()}`
-                      : '無'
-                    }
-                  </div>
+                <div style={xtyle.profileText}>
+                  { checkIsNotBlank(profile.birthday) ?
+                    `${new Date(profile.birthday).toLocaleDateString()}`
+                    : '無'
+                  }
+                </div>
+                {/* 性別 */}
                 <div><strong style={xtyle.profileLabel}>性別：</strong></div>
-                  <div style={xtyle.profileText}>
-                    { checkIsNotBlank(profile.gender) ?
-                      `${profile.gender}`
-                      : '無'
-                    }
-                  </div>
+                <div style={xtyle.profileText}>
+                  { checkIsNotBlank(profile.gender) ?
+                    `${profile.gender}`
+                    : '無'
+                  }
+                </div>
+                {/* 所在地 */}
                 <div><strong style={xtyle.profileLabel}>所在地：</strong></div>
-                  <div style={xtyle.profileText}>
-                    { checkIsNotBlank(profile.location) ?
-                      `${profile.location}`
-                      : '無'
-                    }
-                  </div>
+                <div style={xtyle.profileText}>
+                  { checkIsNotBlank(profile.location) ?
+                    `${profile.location}`
+                    : '無'
+                  }
+                </div>
+                {/* email */}
                 <div><strong style={xtyle.profileLabel}>電子郵件：</strong></div>
-                  <div style={xtyle.profileText}>
-                    { checkIsNotBlank(profile.email) ?
-                      `${profile.email}`
-                      : '無'
-                    }
-                  </div>
+                <div style={xtyle.profileText}>
+                  { checkIsNotBlank(profile.email) ?
+                    `${profile.email}`
+                    : '無'
+                  }
+                </div>
               </div>
+              {/* 簡介 */}
               <div style={{flex: 2}}>
                 <p style={{wordBreak: 'break-word', overflowWrap: 'break-word',textWrap: 'wrap'}}>
                   <strong style={xtyle.profileLabel}>簡介</strong>
@@ -528,6 +550,9 @@ function Neco() {
         {posts.map(post => (
           <Post key={`post-${post.postId}`} item={post}/>
         ))}
+        { !loadingPost && posts.length === 0 &&
+          <h1 style={{textAlign: 'center', margin: 64}}>貼文串似乎是空的...</h1>
+        }
         { loadingPost && 
           <CenterSpin />
         }

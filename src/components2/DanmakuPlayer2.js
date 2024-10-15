@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Button, Input, Avatar, Tooltip, Modal} from 'antd';
+import { Button, Input, Avatar, Tooltip, Modal, message} from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 import './DanmakuPlayer.css';  // 自訂的樣式文件
 
 import axiox from '../axiox';
@@ -8,8 +9,116 @@ import { S3HOST } from '../BaseConfig';
 import UserAvatar from './UserAvatar';
 import DanmakuPlayerEditor from './DanmakuPlayerEditor';
 
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
 const calTextScale = (x) => {
   return 0.7 + x * 0.3
+}
+
+const DanmakuPlayerBubble = ({item}) => {
+  const navigate = useNavigate()
+  const {auth, setAuth} = useAuth() 
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const handleClick = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
+
+  const linkToUserProfile = () => {
+    navigate(`/neco/${item.userId}`)
+  }
+
+  const handleDeleteDmk = () => {
+    axiox.post("/api/v1/danmaku/delete", {
+      danmakuId: item.danmakuId
+    })
+    .then(res => {
+      const data = res.data
+      if (res.status === 200 && data.data) {
+        message.success("彈幕刪除成功")
+      } else {
+        message.error("彈幕刪除錯誤")
+      }
+    })
+    .catch(e => {
+      console.error(e)
+      message.error("彈幕刪除錯誤")
+    })
+  }
+
+  return (
+    <div className="barrage" 
+      style={{ 
+        position: 'absolute', 
+        left: `${item.posX}%`, 
+        top: `${item.posY}%`,
+      }}
+      onClick={handleClick}
+    >
+      <span 
+        style={{ 
+          backgroundColor: 'transparent', 
+          fontWeight: 'bolder', 
+          color: `${item.color}`,
+          textShadow: `1px 1px 0 ${item.backgroundColor}, -1px -1px 0 ${item.backgroundColor}, -1px 1px 0 ${item.backgroundColor}, 1px -1px 0 ${item.backgroundColor}`,
+            fontSize: `${16 * calTextScale(item.size)}px`,
+        }}
+      >
+        {item.content}
+      </span>
+
+      <Modal
+        title={<div style={{fontSize: 20}}>彈幕內容</div>}
+        centered
+        open={isModalVisible}
+        onCancel={handleCancel}
+        footer={null}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} >
+            <Tooltip title={'個人主頁'}>
+              <div onClick={linkToUserProfile}>
+                <UserAvatar src={item.userAvatarPath} size={56} />
+              </div>
+            </Tooltip>
+            <Tooltip title={'貼文主頁'}>
+              <div style={{ marginLeft: '10px' }}>
+                <strong style={{ fontSize: '24px' }} >{item.userName}</strong><br />
+                <span style={{ color: '#888' }}>{new Date(item.createAt).toLocaleString()}</span>
+              </div>
+            </Tooltip>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'end', alignItems: 'center',flex: 1}}>
+            { auth && auth.userId === item.userId &&
+              <Button type={'text'} danger icon={<DeleteOutlined />} onClick={handleDeleteDmk}/>
+            }
+          </div>
+        </div>
+        <div style={{flex:5, display: 'flex', marginTop: 12, justifyContent: 'start'}}>
+          <strong>
+            <span
+              style={{
+                textWrap: 'wrap',
+                color: `${item.color}`,
+                backgroundColor: `${item.backgroundColor}E6`,
+                fontSize: `${16 * calTextScale(item.size)}px`,
+                padding: '8px 12px',
+                borderRadius: 24,
+                ...xtyle.wrapBreak,
+              }}
+              >
+              {item.content}
+            </span>
+          </strong>
+        </div>
+      </Modal>
+    </div>
+  )
 }
 
 const DanmakuPlayer2 = ({asset, dmkVisible, listOpen, onCancel, onDmkCountChange }) => {
@@ -74,7 +183,7 @@ const DanmakuPlayer2 = ({asset, dmkVisible, listOpen, onCancel, onDmkCountChange
         if (cindex !== -1) {
           dmksRef.current.splice(cindex, 0, data.data)
         } else {
-          dmksRef.current.append(data.data)
+          dmksRef.current.push(data.data)
         }
         onDmkCountChange(1)
       }
@@ -160,28 +269,11 @@ const DanmakuPlayer2 = ({asset, dmkVisible, listOpen, onCancel, onDmkCountChange
             width: '100%', 
             height: '100%', 
             pointerEvents: 'none',
-            visibility: dmkVisible ? 'visible' : 'hidden'
+            visibility: dmkVisible ? 'visible' : 'hidden',
           }}
         >
           {barrageList.map((barrage, index) => (
-            <div key={index} className="barrage" 
-              style={{ 
-                position: 'absolute', 
-                left: `${barrage.posX}%`, 
-                top: `${barrage.posY}%`,
-              }}
-            >
-              <span style={{ 
-                  backgroundColor: 'transparent', 
-                  fontWeight: 'bolder', 
-                  color: `${barrage.color}`,
-                  textShadow: `1px 1px 0 ${barrage.backgroundColor}, -1px -1px 0 ${barrage.backgroundColor}, -1px 1px 0 ${barrage.backgroundColor}, 1px -1px 0 ${barrage.backgroundColor}`,
-                    fontSize: `${16 * calTextScale(barrage.size)}px`,
-                }}
-              >
-                {barrage.content}
-              </span>
-            </div>
+            <DanmakuPlayerBubble key={barrage.danmakuId} item={barrage} />
           ))}
         </div>
       </div>

@@ -282,13 +282,14 @@ const MainPage = () => {
           <Space style={xtyle.menuItem}>
             <BellOutlined />
             <div style={{position: 'relative'}} 
-              onClick={(e) => {
-                e.stopPropagation(); // 防止事件冒泡到父層
-                openFriendshipNotification('您有新的通知', friendshipNotifications);
-              }}
             >
               {contextHolder}
-              <span style={xtyle.menuLabel}>
+              <span style={xtyle.menuLabel}
+                onClick={(e) => {
+                  e.stopPropagation(); // 防止事件冒泡到父層
+                  openFriendshipNotification('您有新的通知', friendshipNotifications);
+                }}
+              >
                 通知
               </span>
               {friendshipNotifications.length > 0 && (

@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
-import { Layout, Menu, AutoComplete, Input, List, Spin, message, notification } from 'antd';
+import { Layout, Menu, AutoComplete, Input, List, Spin, message, notification, Space } from 'antd';
 import { HomeOutlined, UserOutlined, SettingOutlined, MenuOutlined, BellOutlined, MessageOutlined, LogoutOutlined, LoginOutlined } from '@ant-design/icons';
 import Login from './components2/Login';
 
@@ -69,27 +69,15 @@ const MainPage = () => {
     if (auth !== null) {
       stompClient.connect({}, (frame) => {
         setIsWsConnected(true)
+        console.log('connect time: ' + new Date().toISOString())
       }, (e) => {
+        console.log('error time: ' + new Date().toISOString())
         setTimeout(() => {
           console.error(e)
         }, 5000)
       })
     }
   }, [auth])
-
-  // useEffect(() => {
-  //   console.log('do connect')
-  //   stompClient.connect({}, (frame) => {
-  //     setIsWsConnected(true)
-  //   })
-    
-  //   return () => {
-  //     console.log('do disconnect')
-  //     stompClient.disconnect(() => {
-  //       setIsWsConnected(false)
-  //     })
-  //   }
-  // }, [navigate])
 
   useEffect(() => {
     if (isWsConnected) {
@@ -179,65 +167,6 @@ const MainPage = () => {
     });
   };
 
-  const menus = isLoginValid ? [
-    { 
-      label: <div style={{textAlign: "right", ...xtyle.menuLabel}}>{auth ? auth.userName : ''}</div>,
-      key: 'nneco', 
-      icon: <UserOutlined style={xtyle.menuItem} />, 
-      onClick: () => {
-        navigate(`/neco/${auth.userId}`)
-        // window.location.href = `/neco/${auth.userId}`
-      }
-    } ,
-    { 
-      label:(
-        <>
-          {contextHolder}
-          <span
-            style={xtyle.menuLabel}
-            onClick={(e) => {
-              e.stopPropagation(); // 防止事件冒泡到父層
-              openFriendshipNotification('您有新的通知', friendshipNotifications);
-            }}
-          >
-            通知
-          </span>
-        </>
-      ),
-      key: 'nevent', 
-      icon: <BellOutlined style={xtyle.menuItem} />, 
-    } ,
-    // { label: <p style={xtyle.menuLabel}>訊息</p>, 
-    //   key: 'nmessage', 
-    //   icon: <MessageOutlined style={xtyle.menuItem} />, 
-    //   onClick: () => {}
-    // } ,
-    { 
-      label: <p style={xtyle.menuLabel}>登出</p>, 
-      key: 'nlogout', 
-      icon: <LogoutOutlined style={xtyle.menuItem} />, 
-      onClick: () => {
-        localStorage.removeItem('jwt')
-        setAuth(null)
-        setIsLoginValid(false)
-        navigate('/')
-      }
-    } ,
-    { label: <p style={xtyle.menuLabel}>&nbsp;</p>, 
-      key: 'ndrawer', 
-      icon: <MenuOutlined style={xtyle.menuItem} />,
-      onClick: () => setCollapsed(!collapsed)
-    } ,
-  ] : [
-    { 
-      label: <p style={xtyle.menuLabel}>登入</p>, 
-      key: 'nlogin', 
-      icon: <LoginOutlined style={xtyle.menuItem} />, 
-      onClick: () => navigate('/login')
-    }
-  ];
-
-
   if (loading || !isLoginValid) {
     return (
       <Layout style={{ minHeight: '100vh', backgroundColor: '#e5e7f0'}}>    
@@ -254,10 +183,12 @@ const MainPage = () => {
               NEKOO
             </div>
           </div>
-          <Menu mode="horizontal"  theme="dark" 
-            selectable={false}
-            style={xtyle.navmenu} 
-          items={menus}/>
+          <Space size='large' style={{cursor:'pointer'}}>
+            <Space style={{color: 'white', fontSize: 24}} onClick={() => navigate('/login')}>
+              <LoginOutlined style={xtyle.menuItem} />
+              <p style={xtyle.menuLabel}>登入</p>
+            </Space>
+          </Space>
         </Header>
 
         <Layout>
@@ -300,10 +231,12 @@ const MainPage = () => {
               NEKOO
             </div>
           </div>
-          <Menu mode="horizontal"  theme="dark" 
-            selectable={false}
-            style={xtyle.navmenu} 
-          items={menus}/>
+          <Space size='large' style={{cursor:'pointer'}}>
+            <Space style={{color: 'white', fontSize: 24}} onClick={() => navigate('/login')}>
+              <LoginOutlined style={xtyle.menuItem} />
+              <p style={xtyle.menuLabel}>登入</p>
+            </Space>
+          </Space>
         </Header>
 
         <Layout>
@@ -339,10 +272,52 @@ const MainPage = () => {
             onSearch={onSearch}
           />
         </div>
-        <Menu mode="horizontal"  theme="dark" 
-          selectable={false}
-          style={xtyle.navmenu} 
-        items={menus}/>
+        <Space size='large' style={{cursor:'pointer'}}>
+          {/* user name */}
+          <Space style={xtyle.menuItem} onClick={() => navigate(`/neco/${auth.userId}`)}>
+            <UserOutlined />
+            <span style={{textAlign: "right", ...xtyle.menuLabel}}>{auth ? auth.userName : ''}</span>
+          </Space>
+          {/* notification */}
+          <Space style={xtyle.menuItem}>
+            <BellOutlined />
+            <div style={{position: 'relative'}} 
+              onClick={(e) => {
+                e.stopPropagation(); // 防止事件冒泡到父層
+                openFriendshipNotification('您有新的通知', friendshipNotifications);
+              }}
+            >
+              {contextHolder}
+              <span style={xtyle.menuLabel}>
+                通知
+              </span>
+              {friendshipNotifications.length > 0 && (
+                <span style={xtyle.menuCountLabel}>
+                  {friendshipNotifications.length}
+                </span>
+              )}
+            </div>
+          </Space>
+          {/* logout */}
+          <Space style={xtyle.menuItem}
+            onClick={
+              () => {
+                localStorage.removeItem('jwt')
+                setAuth(null)
+                setIsLoginValid(false)
+                navigate('/')
+              }
+            }
+          >
+            <LogoutOutlined />
+            <span style={xtyle.menuLabel}>登出</span>
+          </Space>
+          {/* collapse */}
+          <Space style={xtyle.menuItem} onClick={() => setCollapsed(!collapsed)}>
+            <MenuOutlined/>
+            <span style={xtyle.menuLabel}>&nbsp;</span>
+          </Space>
+        </Space>
       </Header>
 
       <Layout>

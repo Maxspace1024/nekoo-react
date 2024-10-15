@@ -12,7 +12,7 @@ const xtyle = {
     display: 'flex', 
     justifyContent: 'space-between', 
     alignItems: 'center',
-    padding: '0 4px 0px 20px',
+    padding: '0 20px',
     backgroundColor: 'steelblue',
     height: 64,
     boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
@@ -38,9 +38,12 @@ const xtyle = {
     color: 'white'
   },
   menuItem: {
-    fontSize: '24px', 
+    fontSize: '28px', 
     color:'white',
-    alignSelf: 'center'
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+    
   },
   menuSearch: { 
     borderRadius: '32px', 
@@ -48,6 +51,22 @@ const xtyle = {
     backgroundColor: 'rgba(255,255,255,0.1)',
     width: 240
   },
+  menuCountLabel: {
+    position: 'absolute',
+    top: 12,
+    right: -8,
+    backgroundColor: 'red',
+    color: 'white',
+    fontWeight: 'bolder',
+    borderRadius: '50%',
+    padding: '4px',
+    width: '20px', // 固定寬度讓其呈現圓形
+    height: '20px', // 固定高度也設為圓形
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontSize: '12px',
+  }, 
   
   // content
   content: { 
@@ -134,7 +153,6 @@ const xtyle = {
     padding: 8,
     height: 'auto', 
     overflowY: 'scroll',
-    padding: 8,
   },
   xearchTopLable: {
     borderRadius: 8, 

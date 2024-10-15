@@ -33,6 +33,8 @@ const colors = [
   '#9400D3'  // violet
 ];
 function rainbowTable(x) {
+  return 'black'
+
   if (x === 0)
     return 'black'
 

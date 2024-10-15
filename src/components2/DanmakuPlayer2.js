@@ -206,10 +206,7 @@ const DanmakuPlayer2 = ({asset, dmkVisible, listOpen, onCancel, onDmkCountChange
           value={barrageText}
           onPressEnter={() => {addBarrage()}}
           onChange={(e) => setBarrageText(e.target.value)}
-          style={{ 
-            borderRadius: 0, 
-            // color: `${dmkStyleProps.color}`
-          }}
+          style={{ borderRadius: 0 }}
           placeholder="輸入彈幕..."
         />
         <Button 
@@ -253,7 +250,7 @@ const DanmakuPlayer2 = ({asset, dmkVisible, listOpen, onCancel, onDmkCountChange
                         borderRadius: 24,
                         ...xtyle.wrapBreak,
                       }}
-                      >
+                    >
                       {item.content}
                     </span>
                   </strong>

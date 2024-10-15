@@ -107,21 +107,47 @@ function ChatRoomChannelList() {
   }, [channelScrollPage])
 
   useEffect(() => {
+    if (newChannel !== null) {
+      stompClient.subscribe(`/topic/chatroom/${newChannel.chatroomUuid}`, (msg) => {
+        // msg.chatlog
+        const isSelfMsg = msg.userId === auth.userId
+        msg.sender = isSelfMsg? 'self' : 'other'
+
+        if (isSelfMsg !== true) {
+          notification.open({
+            message: '新訊息',
+            description: <div><strong>{msg.userName}:</strong> {msg.content}</div>,
+            duration: 3
+          })
+        }
+
+        setChatLogs(prev => [...prev, msg])
+        setChannels(prev => {
+          const index = prev.findIndex(item => item.chatroomId === msg.chatroomId);
+          if (index !== -1) {
+              prev[index].lastContent = msg.content;
+              prev[index].lastUserName = msg.userName;
+              prev[index].lastCreateAt = msg.createAt;
+              prev[index].lastUserId = msg.userId
+              prev[index].readState = 0; // unread
+              const temp = prev[index]
+              prev.splice(index, 1);
+              prev.unshift(temp)
+          }
+          return prev
+        })
+      })
+    }
+  }, [newChannel])
+
+
+  useEffect(() => {
     return () => {
       for (const channel of channels) {
         stompClient.unsubscribe(`/topic/chatroom/${channel.chatroomUuid}`)
       }
     }
   }, [channels])
-
-  useEffect(() => {
-    if (newChannel !== null) {
-      stompClient.subscribe(`/topic/chatroom/${newChannel.chatroomUuid}`, (msg) => {
-        msg.sender = msg.userId === auth.userId ? 'self' : 'other'
-        setChatLogs(prev => [...prev, msg])
-      })
-    }
-  }, [newChannel])
 
   const handleSearch = (value) => {
     setFilterText(value)

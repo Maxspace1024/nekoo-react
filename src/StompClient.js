@@ -21,6 +21,9 @@ class StompClient {
     //   }
     // };
     // this.debugFlag = false
+    // 在客戶端設置心跳間隔
+    // this.stompClient.heartbeat.outgoing = 20000; // 每 20 秒發送一次心跳
+    // this.stompClient.heartbeat.incoming = 20000; // 每 20 秒檢查一次服務器心跳
 
     // 預設為未連接狀態
     this.isConnected = false;

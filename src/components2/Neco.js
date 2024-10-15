@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useRef} from 'react';
-import { Button, Modal, Form, Avatar, Input, Upload, Spin, Image, message, Progress} from 'antd';
+import { Button, Modal, Form, Avatar, Input, Upload, Spin, Image, message, Progress, List, Space} from 'antd';
 import { PlusOutlined , UploadOutlined, EditOutlined, UserOutlined, InboxOutlined, LockOutlined, GlobalOutlined} from '@ant-design/icons';
 import xtyle from "./CommonStyle"
 
@@ -7,6 +7,7 @@ import Post from './Post';
 import CenterSpin from './CenterSpin';
 
 import axiox from '../axiox';
+import { useFriendship } from '../context/FriendshipContext';
 import { useAuth } from '../context/AuthContext';
 import { useParams } from 'react-router-dom';
 import { S3HOST } from '../BaseConfig';
@@ -199,6 +200,15 @@ function Neco() {
     setProfile(data)
   }
 
+  const {friendshipNotifications, setFriendshipNotifications, searchFriendships, setSearchFriendships} = useFriendship()
+
+  function updateSearchFriendships(msgFriendship) {
+    setSearchFriendships(prev => prev.map (f => 
+      f.receiverUserId === msgFriendship.receiverUserId ? msgFriendship
+      : f
+    ))
+  }
+
   useEffect(() => {
     if (userId) {
       setPostScrollPage(0)
@@ -278,6 +288,98 @@ function Neco() {
     return <></>
   }
 
+
+  function handleInvite() {
+    console.log("邀請")
+    // axiox.post("/api/v1/friendship/invite",
+    //   {
+    //     senderUserId: auth.userId,
+    //     receiverUserId: item.receiverUserId
+    //   }
+    // ).then(res => {
+    //   const data = res.data
+    //   if (res.status === 200 && data.data) {
+    //     message.success("已送出邀請")
+    //     updateSearchFriendships(data.data)
+    //   } else {
+    //     message.success("送出邀請錯誤")
+    //   }
+    // })
+    // .catch(e => {
+    //   console.error(e)
+    //   message.success("送出邀請錯誤")
+    // })
+  }
+
+  function handleApprove() {
+    console.log("接受")
+    // axiox.post("/api/v1/friendship/approve",
+    //   {
+    //     friendshipId: item.friendshipId,
+    //   }
+    // ).then(res => {
+    //   const data = res.data
+    //   if (res.status === 200 && data.data) {
+    //     message.success("已接受邀請")
+    //     updateSearchFriendships(data.data)
+    //   } else {
+    //     message.success("接受邀請錯誤")
+    //   }
+    // })
+    // .catch(e => {
+    //   console.error(e)
+    //   message.success("接受邀請錯誤")
+    // })
+  }
+
+  function handleReject() {
+    console.log("拒絕")
+    // axiox.post("/api/v1/friendship/reject",
+    //   {
+    //     friendshipId: item.friendshipId,
+    //   }
+    // ).then(res => {
+    //   const data = res.data
+    //   if (res.status === 200 && data.data) {
+    //     message.success("已拒絕邀請")
+    //     updateSearchFriendships(data.data)
+    //   } else {
+    //     message.success("拒絕邀請錯誤")
+    //   }
+    // })
+    // .catch(e => {
+    //   console.error(e)
+    //   message.success("拒絕邀請錯誤")
+    // })
+  }
+
+  function handleReinvite() {
+    console.log("重送邀請")
+    // axiox.post("/api/v1/friendship/pending",
+    //   {
+    //     friendshipId: item.friendshipId,
+    //   }
+    // ).then(res => {
+    //   const data = res.data
+    //   if (res.status === 200 && data.data) {
+    //     message.success("已重送邀請")
+    //     updateSearchFriendships(data.data)
+    //   } else {
+    //     message.success("重送邀請錯誤")
+    //   }
+    // })
+    // .catch(e => {
+    //   console.error(e)
+    //   message.success("重送邀請錯誤")
+    // })
+  }
+
+  // const isRecv = item.receiverUserId === userId
+  // const userUserId = isRecv ? item.senderUserId : item.receiverUserId
+  // const userAvatarPath = isRecv ? item.senderUserAvatarPath : item.receiverUserAvatarPath 
+  // const userEmail = isRecv ? item.senderUserEmail : item.receiverUserEmail
+  // const userName = isRecv ? item.senderUserName : item.receiverUserName
+
   return (
     <div
       ref={postScrollRef} 
@@ -335,7 +437,39 @@ function Neco() {
                     { checkIsNotBlank(profile.userName) &&
                       `${profile.userName}`
                     }
-                  </div>              
+                  </div>
+                <div><strong style={xtyle.profileLabel}>好友狀態：</strong></div>
+                  { false &&
+                    <Space>
+                    {/* { item.friendshipState === 0 && !isRecv &&  // pending sender */}
+                    {  // pending sender
+                      <Button color='solid' variant='outlined'>已送出邀請</Button>
+                    }
+                    {/* { item.friendshipState === 0 && isRecv && // pending receiver */}
+                    { // pending receiver
+                      <Button color='primary' variant='outlined' onClick={handleApprove}>接受</Button>
+                    }
+                    {/* { item.friendshipState === 0 && isRecv && // pending receiver */}
+                    { // pending receiver
+                      <Button color='danger' variant='solid' onClick={handleReject}>拒絕</Button>
+                    }
+                    {/* { item.friendshipState === 1 && // approved */}
+                    { // approved
+                      <Button color='solid' variant='outlined'>朋友</Button>
+                    }
+                    {/* { item.friendshipState === 2 && !isRecv &&// rejected sender */}
+                    { // rejected sender
+                      <Button color='primary' variant='outlined' onClick={handleReinvite}>重新邀請</Button>
+                    }
+                    {/* { item.friendshipState === 2 && isRecv &&// rejected sender */}
+                    { // rejected sender
+                      <Button color='solid' variant='outlined'>拒絕此邀請</Button>
+                    }
+                    {/* { item.friendshipState === 3 && // none */}
+                    { // none
+                      <Button color='primary' variant='outlined' onClick={handleInvite}>邀請</Button>
+                    }
+                  </Space> }             
                 <div><strong style={xtyle.profileLabel}>生日：</strong></div>
                   <div style={xtyle.profileText}>
                     { checkIsNotBlank(profile.birthday) ?
@@ -382,6 +516,7 @@ function Neco() {
               bottom: 4,
               right: 4
             }}>
+              {/* 右下編輯按鈕 */}
               { profile && auth.userId === profile.userId &&
                 <Button type='text' icon={<EditOutlined style={{ fontSize: '24px' }} onClick={handleEditorOpen}/>} />
               }

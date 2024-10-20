@@ -1,3 +1,7 @@
+# Nekoo-React
+Please reference the [Nekoo Backend](https://github.com/Maxspace1024/nekoo) to know more about the **Nekoo** feature and architecture.
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

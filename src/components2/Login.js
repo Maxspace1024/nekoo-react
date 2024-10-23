@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import { Form, Input, Button, Card, Modal, message } from 'antd';
+import { Form, Input, Button, Card, Modal, message, Space } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useAuth } from "../context/AuthContext";
 import axiox from '../axiox';
@@ -78,13 +78,21 @@ const Login = () => {
 					</Form.Item>
 
 					<Form.Item>
-						<Button type="primary" htmlType="submit" block>
-							登入
-						</Button>
-						<Button type="link" block onClick={onHandleSignup}>
-							註冊
-						</Button>
-						<p style={{margin: 0, minHeight: "20px", color: "red", textAlign: "center" }}>{errorMessage}</p>
+						<Space direction='vertical' style={{width: '100%'}}>
+							<Button type="primary" htmlType="submit" block>
+								登入
+							</Button>
+							<Button type="button" color="default" variant="outlined" block onClick={() => onHandleLogin({email: 'dora@gmail.com', password: 'asdfasdf'})}>
+								免註冊 以哆啦帳號登入
+							</Button>
+							<Button type="button" color="default" variant="outlined" block onClick={() => onHandleLogin({email: 'nobi@gmail.com', password: 'asdfasdf'})}>
+								免註冊 以大雄帳號登入
+							</Button>
+							<Button type="link" block onClick={onHandleSignup}>
+								註冊
+							</Button>
+							<p style={{margin: 0, minHeight: "20px", color: "red", textAlign: "center" }}>{errorMessage}</p>
+						</Space>
 					</Form.Item>
 				</Form>
 			</Card>
